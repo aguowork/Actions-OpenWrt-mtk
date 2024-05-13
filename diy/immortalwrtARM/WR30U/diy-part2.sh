@@ -70,3 +70,5 @@ rm -rf feeds/luci/applications/luci-app-wechatpush
 git clone https://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:x-oauth-basic@github.com/aguowork/luci-app-wechatpush feeds/luci/applications/luci-app-wechatpush
 sed -i "s/option device_name '.*'/option device_name 'Opw'/g" feeds/luci/applications/luci-app-wechatpush/root/etc/config/wechatpush
 
+
+
