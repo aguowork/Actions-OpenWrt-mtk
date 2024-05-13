@@ -10,19 +10,19 @@
 # See /LICENSE for more information.
 #
 
-name: OpenWrt Builder
+name: 360T7 mtwifi cfg immortalwrtARM UBOOT
 
 on:
   repository_dispatch:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: master
+  REPO_URL: https://github.com/aguowork/immortalwrt-mt798x
+  REPO_BRANCH: openwrt-21.02
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: .config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
+  CONFIG_FILE: ./config/immortalwrtARM/360T7/360T7-mtwifi-cfg.config
+  DIY_P1_SH: ./diy/immortalwrtARM/360T7/diy-part1.sh
+  DIY_P2_SH: ./diy/immortalwrtARM/360T7/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
@@ -158,3 +158,7 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Send Push Notification
+      run: |
+        curl -X GET 'https://wxpusher.zjiecode.com/api/send/message/?appToken=AT_jf0zuTx0PjA4qBnyCGeKf5J4t0DeUIc6&content=AguoWork%27s%20Workflow%20Completed&uid=UID_L22PV9Qdjy4q6P3d0dthW1TJiA3k'
