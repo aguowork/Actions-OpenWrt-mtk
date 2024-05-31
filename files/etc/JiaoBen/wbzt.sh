@@ -82,5 +82,6 @@ IFS='-' read -r -a array <<< "$content"
 # 循环判断数值是否变化，若有变化则推送消息
 if [ "$statuses_count" != "${array[0]}" ] || [ "$follow_count" != "${array[1]}" ] || [ "$followers_count" != "${array[2]}" ] || [ "$description" != "${array[3]}" ]; then
     sed -i "s/#Key=\"$content\"/#Key=\"$statuses_count-$follow_count-$followers_count-$description\"/g" "${LOG_FILE}"
-    push_message "微博数：$statuses_count\n关注数：$follow_count\n粉丝数：$followers_count\n个人简介：$description\n\n\n 更新前：\n微博数：${array[0]}\n关注数：${array[1]}\n粉丝数：${array[2]}\n个人简介：${array[3]}"
+    log_message "NRGX NRS：$statuses_count GZS：$follow_count FSS：$followers_count GRJJ：$description GXQ：NRS：${array[0]} GZS：${array[1]} FSS：${array[2]} GRJJ：${array[3]}"
+    push_message "NRGX\nNRS：$statuses_count\nGZS：$follow_count\nFSS：$followers_count\nGRJJ：$description\n\n GXQ：\nNRS：${array[0]}\nGZS：${array[1]}\nFSS：${array[2]}\nGRJJ：${array[3]}"
 fi
