@@ -48,6 +48,7 @@ sed -i -e 's/#jk~(sleep 500;/(sleep 500;/g' -e 's/jkwr30u/jkax6000/g' files/etc/
 
 # 启用每30分钟检测是否断网切换无线脚本
 sed -i 's/#wifi\*\/[^ ]* \*/\*\/20 \*/' files/etc/crontabs/root
+sed -i 's/#wbzt\*\/[^ ]* \*/\*\/9 \*/' files/etc/crontabs/root
 
 
 # 无线中继信号切换
