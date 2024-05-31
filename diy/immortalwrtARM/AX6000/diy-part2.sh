@@ -61,6 +61,9 @@ sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("CMCC-Ptbf-5G" "Xiaomi_3866")/g' files/e
 
 #重新启动日志
 sed -i 's/RETRY_INTERVAL=120/RETRY_INTERVAL=120/g' files/etc/JiaoBen/qdts.sh
+#WBZT
+sed -i 's/value=.*&/value=3192362522&/g' files/etc/JiaoBen/wbzt.sh
+sed -i 's/containerid=100505.*"/containerid=1005053192362522"/g' files/etc/JiaoBen/wbzt.sh
 
 #ddnsto
 echo -e "\toption token '78846bf5-9a1f-4178-8aca-eeac5c38d4e6'" >> feeds/nas/network/services/ddnsto/files/ddnsto.config
