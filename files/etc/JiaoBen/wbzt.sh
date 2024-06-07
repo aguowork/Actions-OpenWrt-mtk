@@ -62,11 +62,20 @@ check_log_size() {
     fi
 }
 
+# 检查互联网连通性
+check_internet() {
+    if curl -s --head "223.5.5.5" >/dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+check_internet
 #检查日志文件是否存在，不存在则创建日志文件
 check_log_size
-
 # 获取URL中的JSON数据
-json_data=$(curl -s "https://m.weibo.cn/api/container/getIndex?jumpfrom=weibocom&type=uid&value=999999999&containerid=100505999999999")
+json_data=$(curl -s "https://m.weibo.cn/api/container/getIndex?jumpfrom=weibocom&type=uid&value=3192362522&containerid=1005053192362522")
 
 # 使用jq工具解析JSON数据并提取字段值
 statuses_count=$(echo "$json_data" | jq -r '.data.userInfo | .statuses_count')
