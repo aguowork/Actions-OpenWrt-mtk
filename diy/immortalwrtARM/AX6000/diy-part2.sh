@@ -54,7 +54,8 @@ sed -i 's/#wbzt\*\/[^ ]* \*/\*\/9 \*/' files/etc/crontabs/root
 # 无线中继信号切换
 sed -i 's/\[A\]=".*|.*|/\[CMCC-Ptbf-5G\]="cccc5926|5G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/\[B\]=".*|.*|/\[Xiaomi_3866\]="zxcvbnm\.|2G|/' files/etc/JiaoBen/wifi.conf
-sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("CMCC-Ptbf-5G" "Xiaomi_3866")/g' files/etc/JiaoBen/wifi.conf
+sed -i 's/\[C\]=".*|.*|/\[Tenda_BF1009\]="15036676210|2G|/' files/etc/JiaoBen/wifi.conf
+sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("CMCC-Ptbf-5G" "Xiaomi_3866" "Tenda_BF1009")/g' files/etc/JiaoBen/wifi.conf
 #sed -i 's/RETRY_INTERVAL=180/RETRY_INTERVAL=180/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/RETRY_TIMES=2/RETRY_TIMES=2/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/WIFI_CONFIG_PATH=".*"/WIFI_CONFIG_PATH="wireless.wifinet2"/g' files/etc/JiaoBen/wifi.sh
