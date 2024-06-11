@@ -45,7 +45,7 @@ push_message() {
 check_log_file() {
     if [ ! -e "${LOG_FILE}" ]; then
         touch "${LOG_FILE}"
-        echo "#Key=\"100-200-300-400\"" > "${LOG_FILE}"   
+        echo "#Key=\"100-200-300-400-500-600-700\"" > "${LOG_FILE}"   
     fi
 }
 
@@ -57,7 +57,7 @@ check_log_size() {
         if [ "$size" -gt "$MAX_LOG_SIZE" ]; then
             log_message "日志文件大小超过了最大值，清空日志文件"
             > "${LOG_FILE}"
-            echo "#Key=\"100-200-300-400\"" > "${LOG_FILE}"
+            echo "#Key=\"100-200-300-400-500-600-700\"" > "${LOG_FILE}"
         fi
     fi
 }
@@ -74,14 +74,19 @@ check_internet() {
 check_internet
 #检查日志文件是否存在，不存在则创建日志文件
 check_log_size
-# 获取URL中的JSON数据
-json_data=$(curl -s "https://m.weibo.cn/api/container/getIndex?jumpfrom=weibocom&type=uid&value=999999999&containerid=100505999999999")
+# 执行 curl 命令，并将输出保存到 json 变量中
+json_data=$(curl -s 'https://weibo.com/ajax/profile/info?uid=123456789' \
+  -H 'user-agent: Mozilla/5.0 (compatible; OpenWrt-Curl/7.76.1)' \
+  -H 'cookie: SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9WW8B_YqNSTTLAQjsCyQRNh7; SINAGLOBAL=407691405303.4852.1715057530312; ULV=1717117485200:3:3:1:6705765528571.046.1717117485174:1715134822016; UOR=,,cn.bing.com; WBPSESS=gJ7ElPMf_3q2cdj5JUfmvHwiwgiIZ7iWpDy9pdknT22VoYm35Lxd5oIpJGcEiFRbVf1dHSiQb_nE-YahsBKpEi7cWwoBB-CwIjMbAQH7YHz608OF33JN1SLi1zeI6fhJ; SUB=_2AkMROYwRf8NxqwFRmfsUy2vraYV_wgnEieKnZX3KJRMxHRl-yj9kql4HtRB6Ormi_i_OZvB3XEXW2okwJzfJoxB0r0VS; XSRF-TOKEN=s95Y3NytmKofRfQwiDNehSS9')
 
 # 使用jq工具解析JSON数据并提取字段值
-statuses_count=$(echo "$json_data" | jq -r '.data.userInfo | .statuses_count')
-follow_count=$(echo "$json_data" | jq -r '.data.userInfo | .follow_count')
-followers_count=$(echo "$json_data" | jq -r '.data.userInfo | .followers_count')
-description=$(echo "$json_data" | jq -r '.data.userInfo | .description')
+statuses_count=$(echo "$json_data" | jq -r '.data.user | .statuses_count')
+friends_count=$(echo "$json_data" | jq -r '.data.user | .friends_count')
+followers_count_str=$(echo "$json_data" | jq -r '.data.user | .followers_count_str')
+description=$(echo "$json_data" | jq -r '.data.user | .description')
+repost_cnt=$(echo "$json_data" | jq -r '.data.user.status_total_counter | .repost_cnt' | tr -d ',')
+comment_cnt=$(echo "$json_data" | jq -r '.data.user.status_total_counter | .comment_cnt' | tr -d ',')
+like_cnt=$(echo "$json_data" | jq -r '.data.user.status_total_counter | .like_cnt' | tr -d ',')
 
 
 content=$(grep -m 1 -o '#Key="[^"]*"' "${LOG_FILE}" | sed 's/#Key="//; s/"//g')
@@ -89,8 +94,8 @@ content=$(grep -m 1 -o '#Key="[^"]*"' "${LOG_FILE}" | sed 's/#Key="//; s/"//g')
 IFS='-' read -r -a array <<< "$content"
 
 # 循环判断数值是否变化，若有变化则推送消息
-if [ "$statuses_count" != "${array[0]}" ] || [ "$follow_count" != "${array[1]}" ] || [ "$followers_count" != "${array[2]}" ] || [ "$description" != "${array[3]}" ]; then
-    sed -i "s/#Key=\"$content\"/#Key=\"$statuses_count-$follow_count-$followers_count-$description\"/g" "${LOG_FILE}"
-    log_message "NRGX NRS：$statuses_count GZS：$follow_count FSS：$followers_count GRJJ：$description GXQ：NRS：${array[0]} GZS：${array[1]} FSS：${array[2]} GRJJ：${array[3]}"
-    push_message "NRGX\nNRS：$statuses_count\nGZS：$follow_count\nFSS：$followers_count\nGRJJ：$description\n\n GXQ：\nNRS：${array[0]}\nGZS：${array[1]}\nFSS：${array[2]}\nGRJJ：${array[3]}"
+if [ "$statuses_count" != "${array[0]}" ] || [ "$friends_count" != "${array[1]}" ] || [ "$followers_count_str" != "${array[2]}" ] || [ "$description" != "${array[3]}" ] || [ "$repost_cnt" != "${array[4]}" ] || [ "$comment_cnt" != "${array[5]}" ] || [ "$like_cnt" != "${array[6]}" ]; then
+    sed -i "s/#Key=\"$content\"/#Key=\"$statuses_count-$friends_count-$followers_count_str-$description-$repost_cnt-$comment_cnt-$like_cnt\"/g" "${LOG_FILE}"
+    log_message "NRGX NRS：$statuses_count GZS：$friends_count FSS：$followers_count_str GRJJ：$description LJZFL：$repost_cnt LLPLL：$comment_cnt LJHZ：$like_cnt  GXQ NRS：${array[0]} GZS：${array[1]} FSS：${array[2]} GRJJ：${array[3]} LJZFL：${array[4]} LLPLL：${array[5]} LJHZ：${array[6]} "
+    push_message "NRGX\nNRS：$statuses_count\nGZS：$friends_count\nFSS：$followers_count_str\nGRJJ：$description\nLJZFL：$repost_cnt \nLLPLL：$comment_cnt \nLJHZ：$like_cnt  \n\nGXQ\nNRS：${array[0]}\nGZS：${array[1]}\nFSS：${array[2]}\nGRJJ：${array[3]} \nLJZFL：${array[4]} \nLLPLL：${array[5]} \nLJHZ：${array[6]}"
 fi
