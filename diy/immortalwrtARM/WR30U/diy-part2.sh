@@ -45,7 +45,8 @@ sed -i 's/#wifi\*\/[^ ]* \*/\*\/9 \*/' files/etc/crontabs/root
 sed -i 's/\[A\]=".*|.*|/\[1707\]="18566861705|2G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/\[B\]=".*|.*|/\[UFI_C6B2A7\]="1234567890|2G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/\[C\]=".*|.*|/\[XM\]="147258369|2G|/' files/etc/JiaoBen/wifi.conf
-sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("1707" "UFI_C6B2A7" "XM")/g' files/etc/JiaoBen/wifi.conf
+sed -i 's/\[D\]=".*|.*|/\[b1403\]="13539012490|2G|/' files/etc/JiaoBen/wifi.conf
+sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("b1403" "1707" "UFI_C6B2A7" "XM")/g' files/etc/JiaoBen/wifi.conf
 #sed -i 's/RETRY_INTERVAL=180/RETRY_INTERVAL=180/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/RETRY_TIMES=2/RETRY_TIMES=2/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/WIFI_CONFIG_PATH=".*"/WIFI_CONFIG_PATH="wireless.wifinet2"/g' files/etc/JiaoBen/wifi.sh
