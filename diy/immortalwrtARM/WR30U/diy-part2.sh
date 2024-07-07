@@ -15,7 +15,7 @@ sed -i 's/192.168.6.1/192.168.100.1/g' package/base-files/files/bin/config_gener
 sed -i 's/\(root::0:0:99999:7:::\)/root:$1$2mmQ7Xbj$5FG6wrw3RA2zD\/WKktai\/.:19782:0:99999:7:::/g' package/base-files/files/etc/shadow
 
 # 修改主机名字（不能纯数字或者使用中文）
-sed -i "s/hostname='.*'/hostname='Xiaodu-AudioSpeaker'/g" package/base-files/files/bin/config_generate
+sed -i "s/hostname='.*'/hostname='TL-WDR5660'/g" package/base-files/files/bin/config_generate
 
 # 修改开源驱动wifi名称
 #sed -i 's/OpenWrt/R30B1_AX3000/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
@@ -46,7 +46,8 @@ sed -i 's/\[A\]=".*|.*|/\[1707\]="18566861705|2G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/\[B\]=".*|.*|/\[UFI_C6B2A7\]="1234567890|2G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/\[C\]=".*|.*|/\[XM\]="147258369|2G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/\[D\]=".*|.*|/\[b1403\]="13539012490|2G|/' files/etc/JiaoBen/wifi.conf
-sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("b1403" "1707" "UFI_C6B2A7" "XM")/g' files/etc/JiaoBen/wifi.conf
+sed -i 's/\[E\]=".*|.*|/\[TP-LINK_FCF3\]="17687610787|2G|/' files/etc/JiaoBen/wifi.conf
+sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("TP-LINK_FCF3" "1707" "b1403" "XM")/g' files/etc/JiaoBen/wifi.conf
 #sed -i 's/RETRY_INTERVAL=180/RETRY_INTERVAL=180/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/RETRY_TIMES=2/RETRY_TIMES=2/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/WIFI_CONFIG_PATH=".*"/WIFI_CONFIG_PATH="wireless.wifinet2"/g' files/etc/JiaoBen/wifi.sh
