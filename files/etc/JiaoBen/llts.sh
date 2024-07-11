@@ -16,12 +16,14 @@ handle_error() {
     # 如果最后的命令退出状态不为零，则认为是错误导致的退出
     local last_exit_status=$?
     if [ "$last_exit_status" != "0" ]; then
-        log_message "发生错误，已停止脚本执行，请检查脚本！"
+        log_message "发生错误，错误码为 $last_exit_status，已停止脚本执行，请检查脚本！"
+        # 退出脚本，并传递错误码
+        exit $last_exit_status
     fi
     # 此处可以根据需要添加清理代码或其他必要的处理步骤
 }
 
-# 设置trap，只捕获ERR信号（错误），而不是EXIT（退出）trap 'handle_error' ERR EXIT
+# 设置trap，只捕获ERR信号（错误），而不是EXIT（退出）
 trap 'handle_error' ERR
 
 
@@ -123,6 +125,23 @@ find_Dbm() {
     # 使用示例：变量=$(find_Dbm "$1")，其中$1为要查找的MAC地址
 }
 
+# 函数：获取所有关键词的位置
+get_column_positions() {
+    local header
+    header=$(sed '1s/^#//' "$USAGE_DB") || { log_message "错误：无法从 $USAGE_DB 中读取文件头"; exit 1; }
+    
+    local keywords=("mac" "ip" "total" "out" "in")
+    local positions=()
+
+    for keyword in "${keywords[@]}"; do
+        local pos
+        pos=$(awk -F ',' -v key="$keyword" '{for (i=1; i<=NF; i++) if ($i == key) {print i; exit}}' <<< "$header")
+        positions+=("$pos")
+    done
+
+    echo "${positions[*]}"
+}
+
 #此处是脚本开始位置------------------------------------------
 check_log_size #检查日志文件大小
 # 如果输出文件不存在，则创建并写入数据
@@ -147,7 +166,11 @@ elif check_internet; then # 检测到网络不可用，则退出脚本
 
     # 使用awk提取usage.db的数据，并存入数组
     # mac,ip,iface,speed_in,speed_out,in,out,total,first_date,last_date
-    mapfile -t usage_array < <(awk -F ',' '!/^#/ {print $1 "," $2 "," $8 "," $7 "," $6}' "$USAGE_DB")
+    # 获取关键词位置
+    IFS=' ' read -r mac_wz ip_wz total_wz out_wz in_wz <<< "$(get_column_positions)"
+    #echo "位置：mac -> $mac_wz, ip -> $ip_wz, total -> $total_wz, out -> $out_wz, in -> $in_wz"
+    # mapfile -t usage_array < <(awk -F ',' '!/^#/ {print $1 "," $2 "," $8 "," $7 "," $6}' "$USAGE_DB")
+    mapfile -t usage_array < <(awk -v mac_wz="$mac_wz" -v ip_wz="$ip_wz" -v total_wz="$total_wz" -v out_wz="$out_wz" -v in_wz="$in_wz" -F ',' '!/^#/ {print $mac_wz "," $ip_wz "," $total_wz "," $out_wz "," $in_wz}' "$USAGE_DB")
     # 使用awk提取lltj文件的数据，并存入数组
     mapfile -t lltj_array < <(awk -F ',' '!/^#/ {print $1 "," $2 "," $3 "," $4 "," $5}' "$OUTPUT_FILE")
 
@@ -169,11 +192,11 @@ elif check_internet; then # 检测到网络不可用，则退出脚本
             if [ "$usage_mac" = "$lltj_mac" ] && [ "$usage_ip" = "$lltj_ip" ]; then
                 # usage_total为当前流量，lltj_total为上次流量，减去计算出本次流量，单位为字节
                 exceeded=$((usage_total - lltj_total))
-                echo "客户端：$(lookup_device_info "$usage_mac") $(bytes_for_humans "$exceeded") 总流量：$(bytes_for_humans "$usage_total")"
+                #echo "客户端：$(lookup_device_info "$usage_mac") $(bytes_for_humans "$exceeded") 总流量：$(bytes_for_humans "$usage_total")"
                 # 判断本次流量是否大于exceeded_threshold阈值，如果大于则输出MAC地址和超出的流量明细，并退出内循环
                 if [ $exceeded -gt $exceeded_threshold ]; then
                     log_message "客户端：$(lookup_device_info "$usage_mac") IP: $usage_ip 总: $(bytes_for_humans "${usage_total}") 一分钟总: $(bytes_for_humans "${exceeded}") 一分钟上传: $(bytes_for_humans "$((usage_out - lltj_out))") 一分钟下载: $(bytes_for_humans "$((usage_in - lltj_in))") DBM: $(find_Dbm "$usage_mac")"
-                    push_nr="${push_nr}\`\`\`\n客户端：$(lookup_device_info "$usage_mac")\nIP地址：$usage_ip\nMAC地址：$usage_mac\n总流量：$(bytes_for_humans "${usage_total}")\n一分钟总流量：$(bytes_for_humans "${exceeded}")\n一分钟上传流量：$(bytes_for_humans "$((usage_out - lltj_out))")\n一分钟下载流量：$(bytes_for_humans "$((usage_in - lltj_in))")\nDBM：$(find_Dbm "$usage_mac")\n\`\`\`\n"
+                    push_nr="${push_nr}\`\`\`\n客户端：$(lookup_device_info "$usage_mac")\nIP地址：$usage_ip\nMAC地址：$usage_mac\n总流量：$(bytes_for_humans "${usage_total}")\n一分钟流量：$(bytes_for_humans "${exceeded}")\n一分钟上传：$(bytes_for_humans "$((usage_out - lltj_out))")\n一分钟下载：$(bytes_for_humans "$((usage_in - lltj_in))")\nDBM：$(find_Dbm "$usage_mac")\n\`\`\`\n"
                     push_name=$push_name"$(lookup_device_info "$usage_mac") "
                 fi
                 break  # 找到匹配的MAC地址后跳出内循环
@@ -191,5 +214,5 @@ elif check_internet; then # 检测到网络不可用，则退出脚本
     # 将usage_array的所有数据一次性写入/tmp/lltj文件中
     (IFS=$'\n'; echo "${usage_array[*]}") > "$OUTPUT_FILE"
     # 删除数组
-    unset usage_array usage_total usage_mac lltj_array usage_mac usage_total usage_in usage_out lltj_mac lltj_total lltj_in lltj_out exceeded push_nr push_name
+    unset usage_array usage_total usage_mac lltj_array usage_mac usage_total usage_in usage_out lltj_mac lltj_total lltj_in lltj_out exceeded push_nr push_name mac_wz ip_wz total_wz out_wz in_wz
 fi
