@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/aguowork/immortalwrt-mt798x
+  REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x.git
   REPO_BRANCH: openwrt-21.02
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: ./config/immortalwrtARM/AX6000/AX6000-mtwifi-cfg.config
