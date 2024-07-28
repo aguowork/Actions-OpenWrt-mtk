@@ -33,6 +33,7 @@ sed -i 's/ImmortalWrt-5G/Y/g' package/mtk/applications/mtwifi-cfg/files/mtwifi.s
 find files/etc/uci-defaults/ -type f ! -name '360T7' -exec rm {} \;
 rm -f /files/etc/JiaoBen/jkax6000.sh
 rm -f /files/etc/JiaoBen/jkwr30u.sh
+rm -f /files/etc/JiaoBen/wbzt.sh
 
 # 脚本配置区
 # 启用开机延迟100秒执行脚本
