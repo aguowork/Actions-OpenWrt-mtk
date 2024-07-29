@@ -11,21 +11,22 @@ LOG_FILE="${SCRIPT_DIR}/$(basename $0 .sh).log" # 日志文件的存储路径
 MAX_LOG_SIZE="100"                      # 日志文件最大大小，单位为KB
 #DEVICE_NAME=$(uci get system.@system[0].hostname) #设备名称
 
+# 设置错误处理的 trap
+trap 'handle_error' ERR
 # 错误处理函数
 handle_error() {
-    # 如果最后的命令退出状态不为零，则认为是错误导致的退出
+    # 获取最后一次命令的退出状态
     local last_exit_status=$?
+    # 获取错误发生的函数名
+    local func_name=${FUNCNAME[1]}  # 获取调用 handle_error 的函数名，通常是发生错误的函数
+    # 获取错误发生的行号
+    local line_number=${BASH_LINENO[0]}
+
     if [ "$last_exit_status" != "0" ]; then
-        log_message "发生错误，错误码为 $last_exit_status，已停止脚本执行，请检查脚本！"
-        # 退出脚本，并传递错误码
-        exit $last_exit_status
+        log_message "发生错误：错误码为 $last_exit_status，错误发生在函数 $func_name 的第 $line_number 行。已停止脚本执行，请检查脚本！"
+        exit 1
     fi
-    # 此处可以根据需要添加清理代码或其他必要的处理步骤
 }
-
-# 设置trap，只捕获ERR信号（错误），而不是EXIT（退出）
-trap 'handle_error' ERR
-
 
 # 日志函数
 log_message() {
