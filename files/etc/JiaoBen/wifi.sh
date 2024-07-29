@@ -3,24 +3,29 @@
 # 配置文件放在当前目录下，文件名为wifi.conf
 CONFIG_FILE="$(dirname "$0")/wifi.conf"
 
+# 设置错误处理的 trap
+trap 'handle_error' ERR
+
+# 错误处理函数
+handle_error() {
+    # 获取最后一次命令的退出状态
+    local last_exit_status=$?
+    # 获取错误发生的函数名
+    local func_name=${FUNCNAME[1]}  # 获取调用 handle_error 的函数名，通常是发生错误的函数
+    # 获取错误发生的行号
+    local line_number=${BASH_LINENO[0]}
+
+    if [ "$last_exit_status" != "0" ]; then
+        log_message "发生错误：错误发生在函数 $func_name 的第 $line_number 行。已停止脚本执行，请检查脚本！"
+        exit 1
+    fi
+}
+
 # 日志记录函数
 log_message() {
     local msg="$1"
     echo "$(date "+%Y-%m-%d %H:%M:%S") - $msg" | tee -a "${LOG_FILE}"
 }
-
-# 错误处理函数
-handle_error() {
-    # 如果最后的命令退出状态不为零，则认为是错误导致的退出
-    local last_exit_status=$?
-    if [ "$last_exit_status" != "0" ]; then
-        log_message "发生错误，已停止脚本执行，请检查脚本！"
-    fi
-    # 此处可以根据需要添加清理代码或其他必要的处理步骤
-}
-
-# 设置trap，只捕获ERR信号（错误），而不是EXIT（退出）trap 'handle_error' ERR EXIT
-trap 'handle_error' ERR
 
 # 推送消息函数
 push_message() {
