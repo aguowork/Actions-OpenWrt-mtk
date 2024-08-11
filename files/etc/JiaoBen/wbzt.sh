@@ -2,12 +2,12 @@
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")") # 获取当前脚本所在目录
 LOG_FILE="${SCRIPT_DIR}/$(basename $0 .sh).log" # 日志文件的存储路径
-MAX_LOG_SIZE=100                      # 日志文件最大大小，单位为KB
+MAX_LOG_SIZE="100"                      # 日志文件最大大小，单位为KB
 PUSH_API_URL="https://wxpusher.zjiecode.com/api/send/message/"
 APP_TOKEN="AT_jf0zuTx0PjA4qBnyCGeKf5J4t0DeUIc6"
 MY_UID="UID_L22PV9Qdjy4q6P3d0dthW1TJiA3k"
 TOPIC_ID="25254"
-
+KEY_FORMAT='#Key=".*-.*-.*-.*-.*-.*-.*"' # 日志文件第一行格式吗，正则表达式
 # 设置错误处理的 trap
 trap 'handle_error' ERR
 
@@ -51,22 +51,29 @@ push_message() {
 check_log_file() {
     if [ ! -e "${LOG_FILE}" ]; then
         touch "${LOG_FILE}"
-        echo "#Key=\"100-200-300-400-500-600-700\"" > "${LOG_FILE}"   
-    fi
-}
+        echo "#Key=\"100-200-300-400-500-600-700\"" > "${LOG_FILE}"
+        echo "日志文件不存在，已创建并且写入默认值"
+    else
+        # 检查日志文件大小
+        FILE_SIZE=$(du -k "${LOG_FILE}" | cut -f1)
+        if [ "${FILE_SIZE}" -gt "${MAX_LOG_SIZE}" ]; then
+            > "${LOG_FILE}"  # 清空日志文件
+            echo "文件大小超过最大值，已清空"
+        fi
 
-# 检查日志文件大小
-check_log_size() {
-    check_log_file
-    if [ -e "${LOG_FILE}" ]; then
-        local size=$(du -s "${LOG_FILE}" | cut -f1)
-        if [ "$size" -gt "$MAX_LOG_SIZE" ]; then
-            log_message "日志文件大小超过了最大值，清空日志文件"
-            > "${LOG_FILE}"
-            echo "#Key=\"100-200-300-400-500-600-700\"" > "${LOG_FILE}"
+        # 检查日志文件第一行是否符合格式
+        FIRST_LINE=$(head -n 1 "${LOG_FILE}")
+        if ! [[ "${FIRST_LINE}" =~ ${KEY_FORMAT} ]]; then
+            # 创建一个临时文件并写入新内容
+            TEMP_FILE=$(mktemp)
+            echo "#Key=\"100-200-300-400-500-600-700\"" > "${TEMP_FILE}"
+            cat "${LOG_FILE}" >> "${TEMP_FILE}"
+            mv "${TEMP_FILE}" "${LOG_FILE}"
+            echo "日志文件第一行不符合格式，已插入默认值"
         fi
     fi
 }
+
 
 # 检查互联网连通性
 check_internet() {
@@ -77,9 +84,9 @@ check_internet() {
     fi
 }
 
-check_internet
-#检查日志文件是否存在，不存在则创建日志文件
-check_log_size
+check_internet #检查互联网连通性
+check_log_file #检查日志文件是否存在，不存在则创建日志文件
+
 # 执行 curl 命令，并将输出保存到 json 变量中
 json_data=$(curl -s 'https://weibo.com/ajax/profile/info?uid=123456789' \
   -H 'user-agent: Mozilla/5.0 (compatible; OpenWrt-Curl/7.76.1)' \
