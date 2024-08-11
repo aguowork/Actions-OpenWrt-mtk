@@ -23,7 +23,7 @@ uci commit network
 #uci set wireless.default_MT7981_1_1.hidden='1'
 uci set wireless.default_MT7981_1_1.encryption='sae-mixed'
 uci set wireless.default_MT7981_1_1.key='88888888..'
-uci set wireless.MT7981_1_1.channel='auto'
+#uci set wireless.MT7981_1_1.channel='auto'
 uci set wireless.default_MT7981_1_1.disabled='1'
 uci set wireless.MT7981_1_2.channel='36'
 #uci set wireless.default_MT7981_1_2.ssid='Y'
