@@ -9,7 +9,7 @@ LOG_FILE="${SCRIPT_DIR}/$(basename $0 .sh).log" # 日志文件的存储路径
 MAX_LOG_SIZE="1000"                      # 日志文件最大大小，单位为KB
 day_of_week=$(date '+%u')  # %u 输出 1-7 表示星期一到星期天
 newline=$'\n' # 定义换行符
-set_time="19" # 设置进入判断的时间
+set_time="20" # 设置进入判断的时间
 app_id="jmqplgjtnssrjbcp"
 app_secret="eROnBwfFMHx7zVpgvFuApOroKmy0gy56"
 
@@ -92,16 +92,19 @@ check_log_file() {
 send_push_notification() {
     local PUSH_URL="https://wxpusher.zjiecode.com/api/send/message"
     local APP_TOKEN="AT_jf0zuTx0PjA4qBnyCGeKf5J4t0DeUIc6"
-    local MYUIDS=("UID_L22PV9Qdjy4q6P3d0dthW1TJiA3k")
-    local UIDS=$(IFS=, ; echo "${MYUIDS[*]}")
+    local TOPICIDS="33181"
+    # APP_TOKEN 是应用的Token
+    # TOPICIDS 是主题ID
+    # summary 是标题
+    # content 是推送内容
 
     # 使用命令行参数构建消息内容，而不是直接在JSON字符串中嵌入变量
     local MESSAGE=$(jq -n \
         --arg summary "$1" \
         --arg content "$2" \
-        --arg uids "$UIDS" \
+        --arg topicIds "$TOPICIDS" \
         --arg appToken "$APP_TOKEN" \
-        '{appToken: $appToken, content: "```\n\($content)\n```", contentType: 3, uids: [$uids], summary: $summary}')
+        '{appToken: $appToken, content: "```\n\($content)\n```", contentType: 3, topicIds: [$topicIds], summary: $summary}')
 
     # 发送POST请求，并检查是否成功
     local HTTP_STATUS
