@@ -122,7 +122,7 @@ generate_lottery_recommendation() {
         "2" | "4" | "7")  # 星期二、星期四、星期日发送双色球推荐
                 if check_time_before "${set_time}"; then
                     numbers=($(shuf -i 1-33 -n 6 | sort -n))
-                    special_number=$(shuf -i 1-16 -n 1)
+                    special_number=$(printf "%02d" $(shuf -i 1-16 -n 1))
                     formatted_numbers=$(IFS=,; printf "%02d," "${numbers[@]}")
                     formatted_numbers=${formatted_numbers%,}  # 去除最后一个逗号
                     # 获取最新期号和上期开奖号码
