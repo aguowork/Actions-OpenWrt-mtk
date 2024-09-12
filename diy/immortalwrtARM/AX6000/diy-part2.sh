@@ -37,13 +37,11 @@ sed -i 's/ImmortalWrt-5G/G5G/g' package/mtk/applications/mtwifi-cfg/files/mtwifi
 
 #删除其他uci
 find files/etc/uci-defaults/ -type f ! -name 'AX6000' -exec rm {} \;
-rm -f /files/etc/JiaoBen/jkwr30u.sh
 
 # 脚本配置区
 # 启用开机延迟100秒执行脚本
 sed -i "s/#qdts~//g" files/etc/rc.local
 #sed -i "s/#wifi~(sleep 150;/(sleep 150;/g" files/etc/rc.local
-sed -i -e 's/#jk~(sleep 500;/(sleep 500;/g' -e 's/jkwr30u/jkax6000/g' files/etc/rc.local
 
 
 # 启用每30分钟检测是否断网切换无线脚本
