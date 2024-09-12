@@ -111,7 +111,7 @@ if [ "$statuses_count" != "${array[0]}" ] || [ "$friends_count" != "${array[1]}"
     # 写入日志文件
     sed -i "s/#Key=\"$content\"/#Key=\"$statuses_count-$friends_count-$followers_count_str-$description-$repost_cnt-$comment_cnt-$like_cnt\"/g" "${LOG_FILE}"
     # 推送消息
-    log_message "NRGX NRS：$statuses_count GZS：$friends_count FSS：$followers_count_str GRJJ：$description LJZFL：$repost_cnt LLPLL：$comment_cnt LJHZ：$like_cnt  GXQ NRS：${array[0]} GZS：${array[1]} FSS：${array[2]} GRJJ：${array[3]} LJZFL：${array[4]} LLPLL：${array[5]} LJHZ：${array[6]} "
+    log_message "NRGX NRS：$statuses_count GZS：$friends_count FSS：$followers_count_str GRJJ：$description LJZFL：$repost_cnt LJPLL：$comment_cnt LJHZ：$like_cnt  GXQ NRS：${array[0]} GZS：${array[1]} FSS：${array[2]} GRJJ：${array[3]} LJZFL：${array[4]} LJPLL：${array[5]} LJHZ：${array[6]} "
     # 推送消息
-    push_message "NRGX\nNRS：$statuses_count\nGZS：$friends_count\nFSS：$followers_count_str\nGRJJ：$description\nLJZFL：$repost_cnt \nLLPLL：$comment_cnt \nLJHZ：$like_cnt  \n\nGXQ\nNRS：${array[0]}\nGZS：${array[1]}\nFSS：${array[2]}\nGRJJ：${array[3]} \nLJZFL：${array[4]} \nLLPLL：${array[5]} \nLJHZ：${array[6]}"
+    push_message "NRGX\nNRS：$statuses_count\nGZS：$friends_count\nFSS：$followers_count_str\nGRJJ：$description\nLJZFL：$repost_cnt \nLJPLL：$comment_cnt \nLJHZ：$like_cnt  \n\nGXQ\nNRS：${array[0]}\nGZS：${array[1]}\nFSS：${array[2]}\nGRJJ：${array[3]} \nLJZFL：${array[4]} \nLJPLL：${array[5]} \nLJHZ：${array[6]}"
 fi
