@@ -63,7 +63,7 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        [ -e files/23.05 ] && mv files/23.05/* openwrt/files
+        [ -e files/21.02 ] && mkdir -p openwrt/files && mv files/21.02/* openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         chmod +x $DIY_P2_SH
         cd openwrt
