@@ -1,19 +1,19 @@
 #
 # https://github.com/P3TERX/Actions-OpenWrt
 
-name: AX6000 mtwifi cfg immortalwrtARM UBOOT
+name: AX6000 mtwifi cfg 2305 immortalwrtARM UBOOT
 
 on:
   repository_dispatch:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x.git
-  REPO_BRANCH: openwrt-21.02
+  REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-23.05.git
+  REPO_BRANCH: openwrt-23.05
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: ./config/immortalwrtARM/AX6000/AX6000-mtwifi-cfg.config
-  DIY_P1_SH: ./diy/immortalwrtARM/AX6000/diy-part1.sh
-  DIY_P2_SH: ./diy/immortalwrtARM/AX6000/diy-part2.sh
+  CONFIG_FILE: ./config/23.05/immortalwrtARM/AX6000/AX6000-mtwifi-cfg.config
+  DIY_P1_SH: ./diy/23.05/immortalwrtARM/AX6000/diy-part1.sh
+  DIY_P2_SH: ./diy/23.05/immortalwrtARM/AX6000/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
@@ -63,7 +63,7 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        [ -e files ] && mv files openwrt/files
+        [ -e files/23.05 ] && mv files/23.05/* openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         chmod +x $DIY_P2_SH
         cd openwrt
