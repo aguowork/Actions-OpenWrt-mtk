@@ -1,0 +1,14 @@
+{
+  "wifi": [
+    {
+      "name": "A",
+      "password": "AAAAAAAA",
+      "band": "2G"
+    },
+    {
+      "name": "B",
+      "password": "BBBBBBBB",
+      "band": "2G"
+    }
+  ]
+}
