@@ -31,7 +31,7 @@ if [ "$REQUEST_METHOD" = "POST" ]; then
     # 提交 uci 配置更改
     uci commit wireless
     # 保存应用 WiFi 设置
-    #wifi reload
+    wifi reload
 
     # 返回成功消息的 HTML 内容
     echo "<html><body>"
