@@ -1,0 +1,104 @@
+/* 全局样式 */
+body {
+    font-family: 'Helvetica Neue', sans-serif; /* 设置字体 */
+    background-color: #181818; /* 深色背景 */
+    color: #ffffff; /* 文本颜色为白色 */
+    margin: 0; /* 移除默认边距 */
+    padding: 20px; /* 添加内边距 */
+    display: flex; /* 使用 Flexbox 布局 */
+    justify-content: center; /* 水平居中内容 */
+    align-items: center; /* 垂直居中内容 */
+    flex-direction: column; /* 子元素垂直排列 */
+}
+
+/* 容器样式 */
+.container {
+    background-color: #282828; /* 暗灰背景色 */
+    border-radius: 12px; /* 圆角边框 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* 盒子阴影 */
+    padding: 30px; /* 容器内边距 */
+    width: 90%; /* 宽度为90% */
+    max-width: 600px; /* 最大宽度 */
+    margin: 10px 0; /* 垂直外边距 */
+    display: flex; /* 使用 Flexbox 布局 */
+    flex-direction: column; /* 子元素垂直排列 */
+}
+
+/* 标题样式 */
+h2 {
+    color: #00ff95; /* 亮绿色 */
+    margin-bottom: 15px; /* 下边距 */
+}
+
+/* 段落和标签样式 */
+p, label {
+    color: #ffd700; /* 金色 */
+    margin: 5px 0; /* 垂直外边距 */
+}
+
+/* 输入框和按钮样式 */
+input[type="text"], input[type="password"], select, input[type="button"] {
+    padding: 10px; /* 内边距 */
+    margin-top: 10px; /* 上边距 */
+    border: none; /* 无边框 */
+    border-radius: 8px; /* 圆角边框 */
+    background-color: #333; /* 深灰背景色 */
+    color: #fff; /* 文本颜色为白色 */
+    width: 100%; /* 宽度填满容器 */
+    box-sizing: border-box; /* 盒模型的宽度包括padding和border */
+}
+
+input[type="checkbox"] {
+    margin-right: 10px; /* 右外边距 */
+}
+
+/* 按钮通用样式 */
+button, input[type="button"] {
+    padding: 10px 15px; /* 内边距 */
+    background-color: #4CAF50; /* 绿色背景 */
+    color: white; /* 白色文本 */
+    border: none; /* 无边框 */
+    border-radius: 8px; /* 圆角 */
+    cursor: pointer; /* 鼠标指针为手形图标 */
+    margin-top: 10px; /* 上外边距 */
+    transition: background-color 0.3s; /* 背景颜色变化的过渡效果 */
+}
+
+button:hover, input[type="button"]:hover {
+    background-color: #45a049; /* 鼠标悬停时的背景色 */
+}
+
+/* 隐藏类 */
+.hidden {
+    display: none; /* 不显示该元素 */
+}
+
+/* 特定于管理容器的样式 */
+#manageContainer {
+    align-items: flex-start; /* 子元素左对齐 */
+}
+
+#manageContainer label {
+    display: flex; /* 使用 Flexbox 布局 */
+    align-items: center; /* 子元素垂直居中 */
+}
+
+#manageContainer button {
+    margin-top: 20px; /* 上外边距 */
+}
+
+/* 添加按钮组样式以支持并排显示 */
+.button-group {
+    display: flex; /* 使用 Flexbox 布局 */
+    justify-content: space-between; /* 子元素间距平均分布 */
+    width: 100%; /* 宽度填满容器 */
+}
+
+.button-group button {
+    flex-grow: 1; /* 子元素平均分配空间 */
+    margin-right: 5px; /* 除最后一个按钮外，其他按钮右侧添加间隔 */
+}
+
+.button-group button:last-child {
+    margin-right: 0; /* 最后一个按钮不需要右边距 */
+}
