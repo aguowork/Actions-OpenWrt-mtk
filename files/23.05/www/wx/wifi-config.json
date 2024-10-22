@@ -1,13 +1,8 @@
 {
   "wifi": [
     {
-      "name": "A",
-      "password": "AAAAAAAA",
-      "band": "2G"
-    },
-    {
-      "name": "B",
-      "password": "BBBBBBBB",
+      "name": "CMCC-Ptbf-5G",
+      "password": "cccc5926",
       "band": "2G"
     }
   ]

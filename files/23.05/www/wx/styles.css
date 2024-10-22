@@ -1,0 +1,194 @@
+/* 全局样式 */
+body {
+    font-family: 'Helvetica Neue', sans-serif;
+    background-color: #181818;
+    color: #ffffff;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* 容器通用样式 */
+.container {
+    background-color: #282828;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    width: 90%;
+    max-width: 600px;
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 标题样式 */
+h2 {
+    color: #00ff95;
+    margin-bottom: 15px;
+}
+
+/* 段落和标签样式 */
+p, label {
+    color: #ffd700;
+    margin: 0;
+}
+
+/* 输入框、选择框、按钮通用样式 */
+input[type="text"], input[type="password"], select, button, input[type="button"] {
+    padding: 10px;
+    margin-top: 0;
+    border: none;
+    border-radius: 8px;
+    background-color: #333;
+    color: white;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.3s;
+    cursor: pointer;
+}
+
+/* 自定义下拉选择框样式 */
+select {
+    appearance: none;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    margin-top: 0;
+    border: none;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23ffd700' d='M2 5L0 2h4L2 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+}
+
+/* 按钮默认样式 */
+button, input[type="button"] {
+    padding: 10px 15px;
+    background-color: #45a049;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+/* 按钮悬停样式 */
+button:hover, input[type="button"]:hover {
+    background-color: #3e8e41;
+}
+
+/* 隐藏类 */
+.hidden {
+    display: none;
+}
+
+/* 管理界面专用样式 */
+#manageContainer {
+    align-items: flex-start;
+}
+
+/* 增大复选框尺寸，并调整与文本的间距 */
+#manageContainer input[type="checkbox"] {
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transform: scale(1.5);
+}
+
+#manageContainer label {
+    font-size: 1.2em;
+}
+
+/* 按钮组样式 */
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.button-group button {
+    flex-grow: 1;
+    margin-right: 5px;
+}
+
+.button-group button:last-child {
+    margin-right: 0;
+}
+
+/* 新的输入组样式 */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-top: 12px;
+}
+
+/* 为当前中继热点的描述部分增加间距 */
+.current-info p {
+    margin: 10px 0;
+}
+
+/* 美化后的配置成功页面样式 */
+#successMessage.success-wrapper {
+    background-color: rgba(40, 40, 40, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+    padding: 40px;
+    width: 80%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#successMessage.success-wrapper h2 {
+    color: #00ff95;
+    margin-bottom: 30px;
+    font-size: 2em;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper.success-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#successMessage.success-wrapper.success-content p {
+    color: #ffd700;
+    margin: 15px 0;
+    font-size: 1.4em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper.success-note {
+    color: #ffd700;
+    font-size: 16px;
+    margin-top: 20px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper button {
+    padding: 15px 30px;
+    background-color: #45a049;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: background-color 0.3s;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper button:hover {
+    background-color: #3e8e41;
+}
