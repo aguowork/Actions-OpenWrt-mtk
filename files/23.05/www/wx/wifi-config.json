@@ -1,8 +1,8 @@
 {
   "wifi": [
     {
-      "name": "CMCC-Ptbf-5G",
-      "password": "cccc5926",
+      "name": "测试一",
+      "password": "12345678",
       "band": "5G"
     }
   ]
