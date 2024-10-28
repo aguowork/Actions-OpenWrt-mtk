@@ -1,7 +1,8 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>系统配置V1</title>
+    <title>系统配置</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
@@ -27,20 +28,26 @@
         </div>
         <div class="config-section">
             <h2>切换热点配置</h2>
-            <label for="wifiNameSelect">已知热点 <span id="manageButton" style="cursor: pointer; color: #00ff95; text-decoration: underline;" onclick="showManageWiFi()">管理</span></label>
+            <label for="wifiNameSelect">已知热点  <span id="manageButton" style="cursor: pointer; color: #00ff95; text-decoration: underline;" onclick="showManageWiFi()">管理</span></label>
             <select id="wifiNameSelect">
                 <option value="">手动输入</option>
             </select>
-            <label for="wifiNameInput">WiFi名称</label>
-            <input type="text" id="wifiNameInput" placeholder="输入你知道的 WiFi">
-            <label for="wifiPwd">WiFi密码</label>
-            <input type="password" id="wifiPwd" value="">
-            <label for="wifiBand">WiFi频段</label>
-            <select id="wifiBand">
-                <option value="" disabled selected hidden>请选择频段</option>
-                <option value="2G">2.4G</option>
-                <option value="5G">5G</option>
-            </select>
+            <div class="input-group">
+                <label for="wifiNameInput">WiFi名称</label>
+                <input type="text" id="wifiNameInput" placeholder="输入你知道的 WiFi">
+            </div>
+            <div class="input-group">
+                <label for="wifiPwd">WiFi密码</label>
+                <input type="text" id="wifiPwd" value="">
+            </div>
+            <div class="input-group">
+                <label for="wifiBand">WiFi频段</label>
+                <select id="wifiBand">
+                    <option value="" disabled selected hidden>请选择频段</option>
+                    <option value="2G">2.4G</option>
+                    <option value="5G">5G</option>
+                </select>
+            </div>
             <input type="button" value="保存应用" id="saveButton">
         </div>
     </div>
@@ -49,11 +56,27 @@
     <div class="container hidden" id="manageContainer">
         <h2>管理已知热点</h2>
         <div id="wifiList"></div>
-        <div class="button-group"> <!-- 添加按钮组容器 -->
-            <button onclick="deleteSelectedWiFi()">删除</button> <!-- 文本更改为“删除” -->
+        <div class="button-group">
+            <button onclick="deleteSelectedWiFi()">删除</button>
             <button onclick="returnToConfig()">返回</button>
         </div>
+        <p id="errorMessage" style="color: red;"></p>
     </div>
-
+    
+    <!-- 成功消息容器 -->
+    <div id="successMessage" class="hidden">
+        <div class="success-wrapper">
+            <h2>配置成功</h2>
+            <div class="success-content">
+                <p>名称：<span id="successSSID"></span></p>
+                <p>密码：<span id="successKey"></span></p>
+                <p>频段：<span id="successBand"></span></p>
+            </div>
+            <br>
+            <p class="success-note">等待30秒</p>
+            <p class="success-note">WiFi重新连接后检查中继状态</p>
+            <button onclick="returnToConfig()">返回配置</button>
+        </div>
+    </div>
 </body>
 </html>

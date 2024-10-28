@@ -1,104 +1,194 @@
 /* 全局样式 */
 body {
-    font-family: 'Helvetica Neue', sans-serif; /* 设置字体 */
-    background-color: #181818; /* 深色背景 */
-    color: #ffffff; /* 文本颜色为白色 */
-    margin: 0; /* 移除默认边距 */
-    padding: 20px; /* 添加内边距 */
-    display: flex; /* 使用 Flexbox 布局 */
-    justify-content: center; /* 水平居中内容 */
-    align-items: center; /* 垂直居中内容 */
-    flex-direction: column; /* 子元素垂直排列 */
+    font-family: 'Helvetica Neue', sans-serif;
+    background-color: #181818;
+    color: #ffffff;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
 
-/* 容器样式 */
+/* 容器通用样式 */
 .container {
-    background-color: #282828; /* 暗灰背景色 */
-    border-radius: 12px; /* 圆角边框 */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* 盒子阴影 */
-    padding: 30px; /* 容器内边距 */
-    width: 90%; /* 宽度为90% */
-    max-width: 600px; /* 最大宽度 */
-    margin: 10px 0; /* 垂直外边距 */
-    display: flex; /* 使用 Flexbox 布局 */
-    flex-direction: column; /* 子元素垂直排列 */
+    background-color: #282828;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    width: 90%;
+    max-width: 600px;
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 标题样式 */
 h2 {
-    color: #00ff95; /* 亮绿色 */
-    margin-bottom: 15px; /* 下边距 */
+    color: #00ff95;
+    margin-bottom: 15px;
 }
 
 /* 段落和标签样式 */
 p, label {
-    color: #ffd700; /* 金色 */
-    margin: 5px 0; /* 垂直外边距 */
+    color: #ffd700;
+    margin: 0;
 }
 
-/* 输入框和按钮样式 */
-input[type="text"], input[type="password"], select, input[type="button"] {
-    padding: 10px; /* 内边距 */
-    margin-top: 10px; /* 上边距 */
-    border: none; /* 无边框 */
-    border-radius: 8px; /* 圆角边框 */
-    background-color: #333; /* 深灰背景色 */
-    color: #fff; /* 文本颜色为白色 */
-    width: 100%; /* 宽度填满容器 */
-    box-sizing: border-box; /* 盒模型的宽度包括padding和border */
+/* 输入框、选择框、按钮通用样式 */
+input[type="text"], input[type="password"], select, button, input[type="button"] {
+    padding: 10px;
+    margin-top: 0;
+    border: none;
+    border-radius: 8px;
+    background-color: #333;
+    color: white;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.3s;
+    cursor: pointer;
 }
 
-input[type="checkbox"] {
-    margin-right: 10px; /* 右外边距 */
+/* 自定义下拉选择框样式 */
+select {
+    appearance: none;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    margin-top: 0;
+    border: none;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23ffd700' d='M2 5L0 2h4L2 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
 }
 
-/* 按钮通用样式 */
+/* 按钮默认样式 */
 button, input[type="button"] {
-    padding: 10px 15px; /* 内边距 */
-    background-color: #4CAF50; /* 绿色背景 */
-    color: white; /* 白色文本 */
-    border: none; /* 无边框 */
-    border-radius: 8px; /* 圆角 */
-    cursor: pointer; /* 鼠标指针为手形图标 */
-    margin-top: 10px; /* 上外边距 */
-    transition: background-color 0.3s; /* 背景颜色变化的过渡效果 */
+    padding: 10px 15px;
+    background-color: #45a049;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
 }
 
+/* 按钮悬停样式 */
 button:hover, input[type="button"]:hover {
-    background-color: #45a049; /* 鼠标悬停时的背景色 */
+    background-color: #3e8e41;
 }
 
 /* 隐藏类 */
 .hidden {
-    display: none; /* 不显示该元素 */
+    display: none;
 }
 
-/* 特定于管理容器的样式 */
+/* 管理界面专用样式 */
 #manageContainer {
-    align-items: flex-start; /* 子元素左对齐 */
+    align-items: flex-start;
+}
+
+/* 增大复选框尺寸，并调整与文本的间距 */
+#manageContainer input[type="checkbox"] {
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transform: scale(1.5);
 }
 
 #manageContainer label {
-    display: flex; /* 使用 Flexbox 布局 */
-    align-items: center; /* 子元素垂直居中 */
+    font-size: 1.2em;
 }
 
-#manageContainer button {
-    margin-top: 20px; /* 上外边距 */
-}
-
-/* 添加按钮组样式以支持并排显示 */
+/* 按钮组样式 */
 .button-group {
-    display: flex; /* 使用 Flexbox 布局 */
-    justify-content: space-between; /* 子元素间距平均分布 */
-    width: 100%; /* 宽度填满容器 */
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .button-group button {
-    flex-grow: 1; /* 子元素平均分配空间 */
-    margin-right: 5px; /* 除最后一个按钮外，其他按钮右侧添加间隔 */
+    flex-grow: 1;
+    margin-right: 5px;
 }
 
 .button-group button:last-child {
-    margin-right: 0; /* 最后一个按钮不需要右边距 */
+    margin-right: 0;
+}
+
+/* 新的输入组样式 */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-top: 12px;
+}
+
+/* 为当前中继热点的描述部分增加间距 */
+.current-info p {
+    margin: 10px 0;
+}
+
+/* 美化后的配置成功页面样式 */
+#successMessage.success-wrapper {
+    background-color: rgba(40, 40, 40, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+    padding: 40px;
+    width: 80%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#successMessage.success-wrapper h2 {
+    color: #00ff95;
+    margin-bottom: 30px;
+    font-size: 2em;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper.success-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#successMessage.success-wrapper.success-content p {
+    color: #ffd700;
+    margin: 15px 0;
+    font-size: 1.4em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper.success-note {
+    color: #ffd700;
+    font-size: 16px;
+    margin-top: 20px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper button {
+    padding: 15px 30px;
+    background-color: #45a049;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: background-color 0.3s;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#successMessage.success-wrapper button:hover {
+    background-color: #3e8e41;
 }

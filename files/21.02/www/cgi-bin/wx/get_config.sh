@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# 这些脚本需要可执行权限chmod +x /www/cgi-bin/wx/save_wifi_config.sh /www/cgi-bin/wx/get_config.sh /www/cgi-bin/wx/delete_wifi_config.sh /www/cgi-bin/wx/config.sh
 # 设置响应的 Content-Type 为 application/json，字符编码为 utf-8
 echo "Content-Type: application/json; charset=utf-8"
 echo ""

@@ -257,7 +257,7 @@ async function saveConfig() {
                 document.getElementById('successBand').textContent = wifiBand.toUpperCase();
                 document.getElementById('configContainer').classList.add('hidden');
             } else {
-                console.error('Element with id "successMessage" not found');
+                console.error('未找到 "successMessage" ID元素');
             }
         } else {
             const errorText = await response2.text();

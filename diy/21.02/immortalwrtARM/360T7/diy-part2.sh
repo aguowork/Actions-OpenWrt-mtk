@@ -51,6 +51,9 @@ sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("802")/g' files/etc/JiaoBen/wifi.conf
 #sed -i 's/WIFI_CONFIG_PATH=".*"/WIFI_CONFIG_PATH="wireless.wifinet2"/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/PING_HOST=".*"/PING_HOST="223.5.5.5"/g' files/etc/JiaoBen/wif.sh
 
+# 无线中继预设配置
+echo '{"wifi":[{"name":"802","password":"qaz6688","band":"2G"}]}' | jq . > files/www/wx/wifi-config.json
+
 #重新启动日志
 sed -i 's/RETRY_INTERVAL=120/RETRY_INTERVAL=120/g' files/etc/JiaoBen/qdts.sh
 

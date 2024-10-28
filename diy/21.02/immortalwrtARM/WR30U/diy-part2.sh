@@ -51,6 +51,9 @@ sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("TP-LINK_FCF3" "1707" "b1403" "XM")/g' f
 #sed -i 's/WIFI_CONFIG_PATH=".*"/WIFI_CONFIG_PATH="wireless.wifinet2"/g' files/etc/JiaoBen/wifi.sh
 #sed -i 's/PING_HOST=".*"/PING_HOST="223.5.5.5"/g' files/etc/JiaoBen/wif.sh
 
+# 无线中继预设配置
+echo '{"wifi":[{"name":"TP-LINK_FCF3","password":"17687610787","band":"2G"},{"name":"b1403","password":"13539012490","band":"2G"},{"name":"1707","password":"18566861705","band":"2G"},{"name":"XM","password":"147258369","band":"2G"},{"name":"UFI_C6B2A7","password":"1234567890","band":"2G"}]}' | jq . > files/www/wx/wifi-config.json
+
 #重新启动日志
 sed -i 's/RETRY_INTERVAL=120/RETRY_INTERVAL=120/g' files/etc/JiaoBen/qdts.sh
 
