@@ -39,10 +39,12 @@ rm -f /files/etc/JiaoBen/wbzt.sh
 # 启用开机延迟100秒执行脚本
 sed -i "s/#qdts~//g" files/etc/rc.local
 #sed -i "s/#wifi~(sleep 150;/(sleep 150;/g" files/etc/rc.local
-sed -i -e 's/#jk~(sleep 500;/(sleep 500;/g' -e 's/jkwr30u/jk360t7/g' files/etc/rc.local
+#sed -i -e 's/#jk~(sleep 500;/(sleep 500;/g' -e 's/jkwr30u/jk360t7/g' files/etc/rc.local
 
 # 启用每30分钟检测是否断网切换无线脚本
-sed -i 's/#wifi\*\/[^ ]* \*/\*\/20 \*/' files/etc/crontabs/root
+#sed -i 's/#wifi\*\/[^ ]* \*/\*\/20 \*/' files/etc/crontabs/root
+sed -i 's/#zjwifi\*\/[^ ]* \*/\*\/11 \*/' files/etc/crontabs/root
+
 # 无线中继信号切换
 sed -i 's/\[A\]=".*|.*|/\[802\]="qaz6688|2G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("802")/g' files/etc/JiaoBen/wifi.conf
@@ -52,7 +54,8 @@ sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("802")/g' files/etc/JiaoBen/wifi.conf
 #sed -i 's/PING_HOST=".*"/PING_HOST="223.5.5.5"/g' files/etc/JiaoBen/wif.sh
 
 # 无线中继预设配置
-echo '{"wifi":[{"name":"802","password":"qaz6688","band":"2G"}]}' | jq . > files/www/wx/wifi-config.json
+echo '{"wifi":[{"name":"802","password":"qaz6688","band":"2G","last_updated":"2024-11-14 18:33:40"}],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}' | jq . > files/www/wx/wifi-config.json
+
 
 #重新启动日志
 sed -i 's/RETRY_INTERVAL=120/RETRY_INTERVAL=120/g' files/etc/JiaoBen/qdts.sh

@@ -45,9 +45,9 @@ sed -i "s/#qdts~//g" files/etc/rc.local
 
 
 # 启用每30分钟检测是否断网切换无线脚本
-sed -i 's/#wifi\*\/[^ ]* \*/\*\/20 \*/' files/etc/crontabs/root
+#sed -i 's/#wifi\*\/[^ ]* \*/\*\/20 \*/' files/etc/crontabs/root
 sed -i 's/#wbzt\*\/[^ ]* \*/\*\/9 \*/' files/etc/crontabs/root
-
+sed -i 's/#zjwifi\*\/[^ ]* \*/\*\/11 \*/' files/etc/crontabs/root
 
 # 无线中继信号切换
 sed -i 's/\[A\]=".*|.*|/\[CMCC-Ptbf-5G\]="cccc5926|5G|/' files/etc/JiaoBen/wifi.conf

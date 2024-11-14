@@ -49,9 +49,9 @@ uci set wireless.wifinet2=wifi-iface
 uci set wireless.wifinet2.device='MT7981_1_1'
 uci set wireless.wifinet2.mode='sta'
 uci set wireless.wifinet2.network='wwan'
-uci set wireless.wifinet2.ssid='TP-LINK_FCF3'
+uci set wireless.wifinet2.ssid='1309'
 uci set wireless.wifinet2.encryption='psk2'
-uci set wireless.wifinet2.key='17687610787'
+uci set wireless.wifinet2.key='13409941080'
 uci commit wireless
 
 # /etc/config/zerotier

@@ -13,7 +13,7 @@ RETRYWIFI_TIMES="688"
 #桥接后还是无法联网，则重启次数
 RESTART="10"
 # 用于检测互联网连通性的服务器地址
-PING_HOST="223.5.5.5"
+PING_HOST="www.baidu.com"
 # 获取当前脚本所在目录 日志文件的存储路径
 LOG_FILE="$(dirname "$(readlink -f "$0")")/$(basename $0 .sh).log"
 # 设备名称
@@ -138,14 +138,6 @@ get_wireless_status() {
         return 1
     fi
     # 返回最终的JSON数据
-    # echo "$output"
-    # 使用示范
-    # shuju=$(get_wireless_status)
-    # 使用 jq 获取 sta 数组中的元素数量
-    # sta_count=$(echo "$shuju" | jq '.wireless.sta | length')
-    # echo "sta 数组中有 $sta_count 个数据组合"
-    # echo "$(get_wireless_status)" | jq '.wireless."2g"[0].device'
-    # ifname_count=$(echo "$json_data" | grep -o '"ifname":' | wc -l)
 }
 
 
@@ -312,7 +304,7 @@ auto_connect_wifi() {
         check_log_size # 检查日志文件大小并且是否存在
         # 判断桥接接口是否存在wwan接口
         if ifstatus ${sta_network} &> /dev/null; then
-            log_message "${sta_network} 桥接接口存在，即将执行联网判断！"
+            echo "${sta_network} 桥接接口存在，即将执行联网判断！"
             # 循环检测互联网状态
             for ((i=0; i<${RETRY_TIMES}; i++)); do
                 if check_internet; then

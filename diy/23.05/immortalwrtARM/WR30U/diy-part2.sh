@@ -15,7 +15,7 @@ sed -i 's/192.168.6.1/192.168.100.1/g' package/base-files/files/bin/config_gener
 sed -i 's/root:::0:99999:7:::/root:\$1$wQIghyNn$dqPUfUazp1dDD\/NvSSSs\/1:20002:0:99999:7:::/g' package/base-files/files/etc/shadow
 
 # 修改主机名字（不能纯数字或者使用中文）
-sed -i "s/hostname='.*'/hostname='TL-WDR5660'/g" package/base-files/files/bin/config_generate
+sed -i "s/hostname='.*'/hostname='SR1041ZT'/g" package/base-files/files/bin/config_generate
 
 # 修改开源驱动wifi名称
 #sed -i 's/OpenWrt/R30B1_AX3000/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
@@ -38,7 +38,9 @@ sed -i "s/#qdts~//g" files/etc/rc.local
 #sed -i "s/#wifi~(sleep 150;/(sleep 150;/g" files/etc/rc.local
 
 # 启用每30分钟检测是否断网切换无线脚本
-sed -i 's/#wifi\*\/[^ ]* \*/\*\/9 \*/' files/etc/crontabs/root
+#sed -i 's/#wifi\*\/[^ ]* \*/\*\/9 \*/' files/etc/crontabs/root
+sed -i 's/#zjwifi\*\/[^ ]* \*/\*\/11 \*/' files/etc/crontabs/root
+
 # 无线中继信号切换
 sed -i 's/\[A\]=".*|.*|/\[1707\]="18566861705|2G|/' files/etc/JiaoBen/wifi.conf
 sed -i 's/\[B\]=".*|.*|/\[UFI_C6B2A7\]="1234567890|2G|/' files/etc/JiaoBen/wifi.conf
@@ -52,7 +54,7 @@ sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("TP-LINK_FCF3" "1707" "b1403" "XM")/g' f
 #sed -i 's/PING_HOST=".*"/PING_HOST="223.5.5.5"/g' files/etc/JiaoBen/wif.sh
 
 # 无线中继预设配置
-echo '{"wifi":[{"name":"TP-LINK_FCF3","password":"17687610787","band":"2G"},{"name":"b1403","password":"13539012490","band":"2G"},{"name":"1707","password":"18566861705","band":"2G"},{"name":"XM","password":"147258369","band":"2G"},{"name":"UFI_C6B2A7","password":"1234567890","band":"2G"}]}' | jq . > files/www/wx/wifi-config.json
+echo '{"wifi":[{"name":"1309","password":"13409941080","band":"2G","last_updated":"2024-11-14 18:33:40"},{"name":"TP-LINK_FCF3","password":"17687610787","band":"2G","last_updated":"2024-11-14 18:33:40"},{"name":"b1403","password":"13539012490","band":"2G","last_updated":"2024-11-14 18:33:40"}],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}' | jq . > files/www/wx/wifi-config.json
 
 
 #重新启动日志
