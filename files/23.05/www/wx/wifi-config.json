@@ -1,9 +1,19 @@
 {
   "wifi": [
     {
-      "name": "测试一",
-      "password": "12345678",
-      "band": "5G"
+      "name": "CMCC-Ptbf-5G",
+      "password": "cccc5926",
+      "band": "5G",
+      "last_updated": "2024-11-14 18:33:40"
+    }
+  ],
+  "autowifiranking": [
+    {
+      "autowifiname": [
+        "Name1",
+        "Name2"
+      ],
+      "CQ_TIMES": 0
     }
   ]
 }
