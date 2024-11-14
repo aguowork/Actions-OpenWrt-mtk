@@ -192,3 +192,138 @@ button:hover, input[type="button"]:hover {
 #successMessage.success-wrapper button:hover {
     background-color: #3e8e41;
 }
+
+/* 自动切换状态容器样式 */
+#autoSwitchPage {
+    background-color: #282828;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    margin: 10px auto; /* 居中显示 */
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    box-sizing: border-box; /* 确保padding不会影响宽度 */
+    transition: all 0.3s ease; /* 过渡效果 */
+}
+
+/* 自动切换状态容器样式 */
+#autoSwitchStatusContainer {
+    background-color: #282828;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    width: 100%; /* 让宽度自适应父元素 */
+    max-width: 600px;
+    margin: 20px 0; /* 上下间距 */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* 输出框样式 */
+#autoSwitchStatus {
+    color: #ffd700;
+    font-family: 'Helvetica Neue', sans-serif;
+    white-space: pre-wrap;
+    flex-grow: 1;
+    min-height: 40px; /* 与按钮高度一致 */
+    max-height: 300px;
+    margin-bottom: 10px; /* 与下面的按钮有一定间距 */
+    overflow: auto; /* 让内容溢出时可以滚动 */
+    transition: all 0.2s ease-in-out; /* 平滑的高度过渡 */
+}
+
+/* 按钮组样式 */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+/* 自动切换页面中的按钮 */
+#startAutoSwitchButton, #returnToConfigButton, #autoSwitchTimerButton {
+    height: 40px;
+    width: auto;
+    min-width: 120px;
+    max-width: 200px;
+    background-color: #ffd700;
+    color: #282828;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    padding: 10px;
+    box-sizing: border-box;
+    flex-shrink: 1;
+    flex-grow: 0;
+}
+
+/* 只针对 #autoSwitchTimerButton 修改颜色 */
+#autoSwitchTimerButton {
+    background-color: #007bff;  /* 改成蓝色背景 */
+    color: #ffffff;  /* 按钮文字改为白色 */
+}
+
+/* 只针对 #returnToConfigButton 修改颜色 */
+#returnToConfigButton {
+    background-color: #28a745;  /* 设置为绿色背景 */
+    color: #ffffff;  /* 按钮文字改为白色 */
+}
+
+/* 按钮悬停效果 */
+#startAutoSwitchButton:hover, #returnToConfigButton:hover, #autoSwitchTimerButton:hover {
+    background-color: #e5c100;
+    transform: translateY(-2px);
+}
+
+/* 只针对 #autoSwitchTimerButton 修改悬停颜色 */
+#autoSwitchTimerButton:hover {
+    background-color: #0056b3;  /* 悬停时深蓝色 */
+    transform: translateY(-2px);
+}
+
+/* 只针对 #returnToConfigButton 修改悬停颜色 */
+#returnToConfigButton:hover {
+    background-color: #218838;  /* 悬停时深绿色 */
+    transform: translateY(-2px);
+}
+
+/* 按钮点击效果 */
+#startAutoSwitchButton:active, #returnToConfigButton:active, #autoSwitchTimerButton:active {
+    background-color: #c8a100;
+    transform: translateY(1px);
+}
+
+/* 只针对 #autoSwitchTimerButton 修改点击颜色 */
+#autoSwitchTimerButton:active {
+    background-color: #004085;  /* 点击时更深的蓝色 */
+    transform: translateY(1px);
+}
+
+/* 只针对 #returnToConfigButton 修改点击颜色 */
+#returnToConfigButton:active {
+    background-color: #1e7e34;  /* 点击时更深的绿色 */
+    transform: translateY(1px);
+}
+
+/* 小屏设备下，按钮宽度100% */
+@media (max-width: 600px) {
+    .button-group {
+        justify-content: center;
+    }
+
+    #startAutoSwitchButton, #returnToConfigButton, #autoSwitchTimerButton {
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 10px;
+    }
+}
