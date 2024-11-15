@@ -54,7 +54,7 @@ sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("802")/g' files/etc/JiaoBen/wifi.conf
 #sed -i 's/PING_HOST=".*"/PING_HOST="223.5.5.5"/g' files/etc/JiaoBen/wif.sh
 
 # 无线中继预设配置
-echo '{"wifi":[{"name":"802","password":"qaz6688","band":"2G","last_updated":"2024-11-14 18:33:40"}],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}' | jq . > files/www/wx/wifi-config.json
+echo '{"wifi":[{"name":"802","encryption":"psk2","password":"qaz6688","band":"2G","last_updated":"2024-11-14 18:33:40"}],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}' | jq . > files/www/wx/wifi-config.json
 
 
 

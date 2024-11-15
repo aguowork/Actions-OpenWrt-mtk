@@ -13,14 +13,14 @@ const appState = {
     }
   };
   
-async function fetchData(url, method = 'GET', body = null) {
+  async function fetchData(url, method = 'GET', body = null) {
     try {
         const options = {
             method,
             headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache',  // 强制不缓存
-            }
+                'Content-Type': 'application/json'
+            },
+            cache: 'reload'  // 强制重新加载，不使用缓存
         };
         if (body) {
             options.body = JSON.stringify(body);
@@ -43,9 +43,8 @@ async function fetchData(url, method = 'GET', body = null) {
         console.error(error);
         return null;
     }
-}
+  }
 
-  
   function displayErrorMessage(message) {
     document.getElementById('errorMessage').textContent = message;
   }
@@ -348,6 +347,8 @@ async function fetchData(url, method = 'GET', body = null) {
   
       if (autoSwitchPage) {
           autoSwitchPage.style.display = 'flex';
+          const statusElement = document.getElementById('autoSwitchStatus');
+          statusElement.textContent = '';
       }
       if (configContainer) {
           configContainer.style.display = 'none';
@@ -449,16 +450,14 @@ async function autoSwitchTimer() {
     }
 }
 
-
-
-  
   // 事件监听
   document.getElementById('password').addEventListener('keydown', validatePassword);
   document.getElementById('confirmButton').addEventListener('click', validatePassword);
   document.getElementById('saveButton').addEventListener('click', saveConfig);
-  // 绑定 focus 事件而不是 click 事件
-  document.getElementById('wifiNameSelect').addEventListener('focus', async function() {
-     console.log('刷新下拉框');
-     await loadWiFiConfigs();  // 每次点击下拉框展开时重新加载配置
+  // 添加下拉框的鼠标事件
+  document.getElementById('wifiNameSelect').addEventListener('mousedown', async function() {
+    console.log('刷新下拉框');
+    await loadWiFiConfigs();  // 每次点击下拉框时重新加载配置
   });
+
 

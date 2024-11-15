@@ -61,7 +61,7 @@ sed -i 's/SHUCHUWIFI=(".*")/SHUCHUWIFI=("CMCC-Ptbf-5G" "Xiaomi_3866" "Tenda_BF10
 #sed -i 's/PING_HOST=".*"/PING_HOST="223.5.5.5"/g' files/etc/JiaoBen/wif.sh
 
 #中继配置预设
-echo '{"wifi":[{"name":"CMCC-Ptbf-5G","password":"cccc5926","band":"5G","last_updated":"2024-11-14 18:33:40"}],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}' | jq . > files/www/wx/wifi-config.json
+echo '{"wifi":[{"name":"CMCC-Ptbf-5G","encryption":"psk2","password":"cccc5926","band":"5G","last_updated":"2024-11-14 18:33:40"}],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}' | jq . > files/www/wx/wifi-config.json
 
 
 #重新启动日志

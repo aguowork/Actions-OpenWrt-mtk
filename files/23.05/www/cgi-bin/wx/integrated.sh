@@ -159,7 +159,7 @@ switch_wifi() {
     local LOOP_NAME LOOP_PASSWORD LOOP_BAND LOOP_LAST_UPDATED DIFF WiFi_STATE CXQD
 
     # 使用 jq 一次性提取wifi-config.json文件所有 Wi-Fi 信息，并直接构建数组
-    readarray -t CONFIG_WIFI < <(jq -r '.wifi[] | [.name, .password, .band, .last_updated] | @tsv' "$CONFIG_FILE")
+    readarray -t CONFIG_WIFI < <(jq -r '.wifi[] | [.name, .encryption, .password, .band, .last_updated] | @tsv' "$CONFIG_FILE")
 
     # CXQD 用于防呆，防止死循环，导致设备假死
     CXQD=$(jq -r '.autowifiranking[0].CQ_TIMES' "$CONFIG_FILE")
@@ -167,10 +167,10 @@ switch_wifi() {
     # 循环获取 Wi-Fi 数组的每个元素
     for W in "${!CONFIG_WIFI[@]}"; do #循环一
         # 使用 IFS 分割字符串 以获取每个字段 (包括空格) LOOP_NAME是名称 LOOP_PASSWORD是密码 LOOP_BAND是频段 LOOP_LAST_UPDATED是更新时间
-        IFS=$'\t' read -r LOOP_NAME LOOP_PASSWORD LOOP_BAND LOOP_LAST_UPDATED <<< "${CONFIG_WIFI[$W]}"
+        IFS=$'\t' read -r LOOP_NAME LOOP_ENCRYPTION LOOP_PASSWORD LOOP_BAND LOOP_LAST_UPDATED <<< "${CONFIG_WIFI[$W]}"
         # 检查字段是否为空或 BAND 是否不在允许范围内
-        if [ -z "$LOOP_NAME" ] || [ -z "$LOOP_PASSWORD" ] || [ -z "$LOOP_LAST_UPDATED" ] || { [ "$LOOP_BAND" != "2G" ] && [ "$LOOP_BAND" != "5G" ]; }; then
-            log_message "配置文件数据格式不正确，请检查name、password是否为空，band 是否为2G或5G。"
+        if [ -z "$LOOP_NAME" ] || [ -z "$LOOP_ENCRYPTION" ] || [ -z "$LOOP_LAST_UPDATED" ] || { [ "$LOOP_BAND" != "2G" ] && [ "$LOOP_BAND" != "5G" ]; }; then
+            log_message "配置文件数据格式不正确，请检查name、encryption是否为空，band 是否为2G或5G。"
             exit 0
         fi
 
@@ -215,6 +215,7 @@ switch_wifi() {
 
         # 使用 uci 命令设置新的 WiFi 名称和密码
         uci set wireless."${sta_section}".ssid="$LOOP_NAME"
+        uci set wireless."${sta_section}".encryption="$LOOP_ENCRYPTION"
         uci set wireless."${sta_section}".key="$LOOP_PASSWORD"
         # 提交 uci 配置更改
         uci commit wireless
@@ -222,7 +223,7 @@ switch_wifi() {
         wifi reload
         
         # 等待网络就绪
-        log_message "已尝试连接 ${LOOP_NAME} 密码：${LOOP_PASSWORD} 频段：${LOOP_BAND} 即将获取连接状态，持续${MAX_RETRIES}次！"
+        log_message "已尝试连接 ${LOOP_NAME} 密码：${LOOP_PASSWORD} 频段：${LOOP_BAND} 安全性：${LOOP_ENCRYPTION} 即将获取连接状态，持续${MAX_RETRIES}次！"
         # 循环等待设备名称获取
         for na in $(seq 1 ${MAX_RETRIES}); do #设备名称获取
             sleep 3 # 延迟3秒获取一次
@@ -246,7 +247,7 @@ switch_wifi() {
             sleep 3 # 延迟3秒
             WiFi_STATE=$(iwinfo "${sta_ifname}" info | awk -F'"' '/ESSID/{print $2}')
             if [ "$LOOP_NAME" = "$WiFi_STATE" ]; then # 判断LOOP_NAME是否等于WiFi_STATE，如果相等
-                log_message "连接成功 ${LOOP_NAME} 密码：${LOOP_PASSWORD} 频段：${LOOP_BAND}"
+                log_message "连接成功 ${LOOP_NAME} 密码：${LOOP_PASSWORD} 频段：${LOOP_BAND} 安全性：${LOOP_ENCRYPTION}"
                 log_message "开始获取 ${LOOP_NAME} 联网状态 持续${MAX_RETRIES}次！"
                 # 获取联网状态
                 for yslw in $(seq 1 ${MAX_RETRIES}); do #循环三
@@ -378,21 +379,20 @@ save_wifi_config() {
     read -r POST_DATA
     # 提取 WiFi 名称、密码和频段
     config_SSID=$(echo "$POST_DATA" | jq -r '.name')
+    cinfig_encryption=$(echo "$POST_DATA" | jq -r '.encryption')
     config_PASSWORD=$(echo "$POST_DATA" | jq -r '.password')
     config_BAND=$(echo "$POST_DATA" | jq -r '.band')
     config_CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")  # 获取当前时间
 
     # 检查配置文件是否存在，如果不存在则创建一个空的 JSON 结构
-    if [ ! -f "$CONFIG_FILE" ]; then
-        echo '{"wifi": []}' > "$CONFIG_FILE"
-    fi
+    [ ! -f "$CONFIG_FILE" ] && echo '{"wifi":[],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}'>"$CONFIG_FILE"
 
     # 使用 jq 处理 JSON 文件
-    jq --arg ssid "$config_SSID" --arg password "$config_PASSWORD" --arg band "$config_BAND" --arg time "$config_CURRENT_TIME" \
+    jq --arg ssid "$config_SSID" --arg encryption "$cinfig_encryption" --arg password "$config_PASSWORD" --arg band "$config_BAND" --arg time "$config_CURRENT_TIME" \
        'if (.wifi | any(.name == $ssid)) then
-            .wifi |= map(if .name == $ssid then .password = $password | .band = $band | .last_updated = $time else . end)
+            .wifi |= map(if .name == $ssid then .encryption = $encryption | .password = $password | .band = $band | .last_updated = $time else . end)
          else
-            .wifi += [{"name": $ssid, "password": $password, "band": $band, "last_updated": $time}]
+            .wifi += [{"name": $ssid, "encryption": $encryption, "password": $password, "band": $band, "last_updated": $time}]
          end' \
        "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
 
@@ -412,6 +412,7 @@ config_function() {
         read POST_DATA
         # 使用 sed 命令从 POST 数据中提取 WiFi 名称（ssid）
         function_SSID=$(echo "$POST_DATA" | sed -n 's/^.*ssid=\([^&]*\).*$/\1/p')
+        function_encryption=$(echo "$POST_DATA" | sed -n 's/^.*encryption=\([^&]*\).*$/\1/p')
         # 使用 sed 命令从 POST 数据中提取 WiFi 密码（key）
         function_KEY=$(echo "$POST_DATA" | sed -n 's/^.*key=\([^&]*\).*$/\1/p')
         # 从 POST_DATA 中提取 band 参数并转换为小写
@@ -429,6 +430,7 @@ config_function() {
         fi
         # 使用 uci 命令设置新的 WiFi 名称和密码
         uci set wireless."$sta_section".ssid="$function_SSID"
+        uci set wireless."$sta_section".encryption="$function_encryption"
         uci set wireless."$sta_section".key="$function_KEY"
         # 提交 uci 配置更改
         uci commit wireless
@@ -461,11 +463,14 @@ get_config() {
     # 获取当前网络接口状态
     get_wifi_Interface=$(if [[ -n "${sta_network}" ]]; then echo "${sta_network}"; else echo "不存在 ${sta_network} 接口"; fi)
     # 判断当前中继 WiFi 是否连接 $(ifstatus "wwan" &> /dev/null)
-    get_wifi_bridge_status=$(if [[ -n "${get_wifi_name}" ]]; then echo "已连接"; else echo "已断开"; fi)
+    get_wifi_essid=$(iwinfo "${sta_ifname}" info | awk -F'"' '/ESSID/{print $2}')
+    get_wifi_bridge_status=$(if [[ -n "${get_wifi_essid}" ]]; then echo "已连接 ${get_wifi_essid}"; else echo "连接失败 ${get_wifi_essid}"; fi)
+    #网络连接状态
+    get_wifi_network_status=$(if check_internet; then echo "已连接"; else echo "已断开"; fi)
     # 返回包含当前 WiFi 名称、密码和频段的 JSON 格式数据
     echo "Content-Type: application/json; charset=utf-8"
     echo ""
-    echo "{\"ssid\":\"$get_wifi_name\",\"key\":\"$get_wifi_password\",\"band\":\"$get_wifi_band\",\"interface\":\"$get_wifi_Interface\",\"bridge_status\":\"$get_wifi_bridge_status\"}"
+    echo "{\"ssid\":\"$get_wifi_name\",\"key\":\"$get_wifi_password\",\"band\":\"$get_wifi_band\",\"interface\":\"$get_wifi_Interface\",\"bridge_status\":\"$get_wifi_bridge_status\",\"network_status\":\"$get_wifi_network_status\"}"
 }
 
 # 获取当前 WiFi 配置
