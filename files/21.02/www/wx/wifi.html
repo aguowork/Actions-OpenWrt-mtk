@@ -23,6 +23,7 @@
             <p>频段：<span id="currentBand"></span></p>
             <p>接口：<span id="currentInterface"></span></p>
             <p>状态：<span id="currentBridgeStatus"></span></p>
+            <p>网络：<span id="currentnetworkstatus"></span></p>
         </div>
         <div class="config-section">
             <h2>切换热点配置</h2>
@@ -34,10 +35,22 @@
                 <label for="wifiNameInput">WiFi名称</label>
                 <input type="text" id="wifiNameInput" placeholder="输入你知道的 WiFi">
             </div>
+            
             <div class="input-group">
+                <label for="encryption">WIFI安全性</label>
+                <select id="encryption">
+                    <option value="psk2">WPA2-PSK (强安全性)</option>
+                    <option value="sae">WPA3-SAE (强安全性)</option>
+                    <option value="psk">WPA-PSK (弱安全性)</option>
+                    <option value="owe">OWE (开放网络)</option>
+                    <option value="none" selected>无加密 (开放网络)</option>
+                </select>
+            </div>
+            <!-- 这里在安全性选择后，再显示密码输入框，如果选择的不是none就显示下面的密码输入框 -->
+            <div class="input-group" id="passwordContainer">
                 <label for="wifiPwd">WiFi密码</label>
                 <input type="text" id="wifiPwd" value="">
-            </div>
+            </div>            
             <div class="input-group">
                 <label for="wifiBand">WiFi频段</label>
                 <select id="wifiBand">
@@ -67,6 +80,7 @@
             <h2>配置成功</h2>
             <div class="success-content">
                 <p>名称：<span id="successSSID"></span></p>
+                <p>安全性：<span id="successEncryption"></span></p>
                 <p>密码：<span id="successKey"></span></p>
                 <p>频段：<span id="successBand"></span></p>
             </div>

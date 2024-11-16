@@ -45,12 +45,12 @@ const appState = {
     }
   }
 
-  function displayErrorMessage(message) {
+function displayErrorMessage(message) {
     document.getElementById('errorMessage').textContent = message;
-  }
-  
-  // 密码验证函数
-  async function validatePassword(event) {
+}
+
+// 密码验证函数
+async function validatePassword(event) {
     if (event.key === 'Enter' || event.type === 'click') {
         const password = document.getElementById('password').value;
         if (password === 'admin') {
@@ -66,10 +66,10 @@ const appState = {
             alert('密码错误，请重试。');
         }
     }
-  }
+}
   
-  // 通用函数，从 wifi-config.json 获取数据并处理
-  async function processWiFiConfigData(callback) {
+// 通用函数，从 wifi-config.json 获取数据并处理
+async function processWiFiConfigData(callback) {
     const data = await fetchData('wifi-config.json');
     if (data) {
         return callback(data.wifi);
@@ -77,52 +77,97 @@ const appState = {
         displayErrorMessage('加载 WiFi 列表失败，请稍后重试。');
         return null;
     }
-  }
+}
   
-  // 加载 WiFi 配置信息的函数
-  async function loadWiFiConfigs() {
+// 加载 WiFi 配置信息的函数
+async function loadWiFiConfigs() {
     console.log("获取 wifi-config.json 数据到下拉框中");
     const select = document.getElementById('wifiNameSelect');
+    const passwordContainer = document.getElementById('passwordContainer');
     if (!select) {
         console.error("未找到 WiFi 选择框 (wifiNameSelect)");
         return;
     }
-  
+
     await processWiFiConfigData(async (wifiList) => {
-        let wifiPasswords = {};
+        let wifiDetails = {};
         select.innerHTML = '<option value="">手动输入</option>';
+
+        // 填充下拉框和保存 WiFi 信息
         wifiList.forEach(wifi => {
             const option = document.createElement('option');
             option.value = wifi.name;
             option.textContent = wifi.name;
             select.appendChild(option);
-            wifiPasswords[wifi.name] = wifi.password;
+
+            // 保存 WiFi 详细信息以便后续使用
+            wifiDetails[wifi.name] = {
+                password: wifi.password,
+                band: wifi.band,
+                encryption: wifi.encryption
+            };
         });
-  
+
+        // 当用户选择已知 WiFi 时，加载对应信息到输入框并更新密码框状态
         select.addEventListener('change', function () {
             const wifiName = this.value;
-            document.getElementById('wifiNameInput').value = wifiName;
-            document.getElementById('wifiPwd').value = wifiPasswords[wifiName] || '';
-            const selectedWifi = wifiList.find(wifi => wifi.name === wifiName);
-            if (selectedWifi) {
-                document.getElementById('wifiBand').value = selectedWifi.band.toUpperCase();
+            if (wifiDetails[wifiName]) {
+                const wifiInfo = wifiDetails[wifiName];
+                document.getElementById('wifiNameInput').value = wifiName;
+                document.getElementById('wifiPwd').value = wifiInfo.password || '';
+                document.getElementById('wifiBand').value = wifiInfo.band.toUpperCase();
+                // 更新加密类型 
+                document.getElementById('encryption').value = wifiInfo.encryption || 'none';
+
+                // 根据加密类型显示或隐藏密码框
+                if (wifiInfo.encryption === 'none' || wifiInfo.encryption === 'owe' || wifiInfo.encryption === '') {
+                    // 隐藏密码框
+                    passwordContainer.style.display = 'none';
+                    document.getElementById('wifiPwd').value = ''; // 清空密码
+                } else {
+                    // 显示密码框
+                    passwordContainer.style.display = 'block';
+                }
             } else {
+                // 如果未匹配到 WiFi 名称，则清空字段
+                document.getElementById('wifiNameInput').value = '';
+                document.getElementById('wifiPwd').value = '';
                 document.getElementById('wifiBand').value = '';
+                document.getElementById('encryption').value = 'none';
+                passwordContainer.style.display = 'none';
             }
         });
-  
+
+        // 当用户手动输入 WiFi 名称时，清空其他信息并隐藏密码框
         document.getElementById('wifiNameInput').addEventListener('input', function () {
             const wifiName = this.value;
-            document.getElementById('wifiPwd').value = wifiPasswords[wifiName] || '';
-            select.value = '';
-            document.getElementById('wifiBand').value = '';
+            if (wifiDetails[wifiName]) {
+                const wifiInfo = wifiDetails[wifiName];
+                document.getElementById('wifiPwd').value = wifiInfo.password || '';
+                document.getElementById('wifiBand').value = wifiInfo.band.toUpperCase();
+                document.getElementById('encryption').value = wifiInfo.encryption || 'none';
+
+                // 根据加密类型显示或隐藏密码框
+                if (wifiInfo.encryption === 'none' || wifiInfo.encryption === 'owe' || wifiInfo.encryption === '') {
+                    passwordContainer.style.display = 'none';
+                    document.getElementById('wifiPwd').value = ''; // 清空密码
+                } else {
+                    passwordContainer.style.display = 'block';
+                }
+            } else {
+                select.value = ''; // 清空下拉框选择
+                document.getElementById('wifiPwd').value = '';
+                document.getElementById('wifiBand').value = '';
+                document.getElementById('encryption').value = 'none';
+                passwordContainer.style.display = 'none';
+            }
         });
     });
-  }
+}
+
   
   // 显示管理已知热点界面
   function showManageWiFi() {
-
       // 隐藏配置界面
       document.getElementById('configContainer').style.display = 'none';
       // 隐藏配置成功界面
@@ -131,17 +176,14 @@ const appState = {
       document.getElementById('autoSwitchPage').style.display = 'none';
       // 显示 管理界面
       document.getElementById('manageContainer').style.display = 'block';
-
-
       // 清除选择框的状态，确保每次进入都是全新的
       document.getElementById('wifiNameSelect').value = '';
       document.getElementById('wifiNameInput').value = '';
+      document.getElementById('encryption').value = 'none';
       document.getElementById('wifiPwd').value = '';
       document.getElementById('wifiBand').value = '';
       updateWiFiList();
   }
-  
-  
   
   // 刷新 wifi-config.json 文件的函数，用于显示管理已知热点界面，删除 WiFi 之后刷新列表
   async function updateWiFiList() {
@@ -197,18 +239,19 @@ const appState = {
     deleteButton.disabled = false;
   }
   
-  // 验证配置输入是否完整
-  function isConfigInputValid() {
+// 验证配置输入是否完整
+function isConfigInputValid() {
     const wifiName = document.getElementById('wifiNameInput').value || document.getElementById('wifiNameSelect').value;
-    const wifiPwd = document.getElementById('wifiPwd').value;
+    const encryption = document.getElementById('encryption').value;
     const wifiBand = document.getElementById('wifiBand').value;
-  
-    if (!wifiName ||!wifiPwd || (!document.getElementById('wifiNameSelect').value &&!wifiBand)) {
-        alert('请填写完整 WiFi 名称、密码、频段。');
+    
+
+    if (!wifiName || !encryption || !wifiBand) {
+        alert('请填写完整 WiFi名称 和 频段');
         return false;
     }
     return true;
-  }
+}
   
   async function saveConfig() {
       // 检查配置输入是否有效，无效则直接返回
@@ -226,13 +269,21 @@ const appState = {
     
       // 获取 WiFi 名称和密码
       const wifiName = document.getElementById('wifiNameInput').value || document.getElementById('wifiNameSelect').value;
+      // 获取 WiFi 加密方式
+      const encryption = document.getElementById('encryption').value;
+      // 获取 WiFi 密码
       const wifiPwd = document.getElementById('wifiPwd').value;
+      // 获取 WiFi 频段
       const wifiBand = document.getElementById('wifiBand').value;
-    
+      // 判断encryption如果等于空则给encryption赋值none
+      if (encryption === '') {
+          encryption = 'none';
+      }
       // 构建确认消息
       const confirmMessage = `
             热点名称：${wifiName}
-            热点密码：${wifiPwd}
+            安全性：${encryption === 'none' || encryption === 'owe' ? '无加密 (开放网络)' : encryption === 'psk2' ? 'WPA2-PSK (强安全性)' : encryption === 'sae' ? 'WPA3-SAE (强安全性)' : encryption === 'psk' ? 'WPA-PSK (弱安全性)' : ''}
+            热点密码：${wifiPwd ? wifiPwd : '未加密'}
             频段：${wifiBand}
     
             确定切换到该热点吗？`;
@@ -244,6 +295,7 @@ const appState = {
       // 构建 WiFi 配置对象
       const wifiConfig = {
           "name": wifiName,
+          "encryption": encryption,
           "password": wifiPwd,
           "band": wifiBand
       };
@@ -277,7 +329,7 @@ const appState = {
               headers: {
                   'Content-Type': 'application/x-www-form-urlencoded'
               },
-              body: `ssid=${wifiName}&key=${wifiPwd}&band=${wifiBand}`
+              body: `ssid=${wifiName}&encryption=${encryption}&key=${wifiPwd}&band=${wifiBand}`
           });
           // 配置请求已发送
           console.log('WiFi UCI配置请求已发送');
@@ -287,7 +339,8 @@ const appState = {
           if (successMessage) {
               successMessage.style.display = 'block';
               document.getElementById('successSSID').textContent = wifiName;
-              document.getElementById('successKey').textContent = wifiPwd;
+              document.getElementById('successEncryption').textContent = { 'none': '无加密 (开放网络)', 'owe': '无加密 (开放网络)', 'psk2': 'WPA2-PSK (强安全性)', 'sae': 'WPA3-SAE (强安全性)', 'psk': 'WPA-PSK (弱安全性)' }[encryption] || '未知';
+              document.getElementById('successKey').textContent = wifiPwd || '未加密';
               document.getElementById('successBand').textContent = wifiBand.toUpperCase();
               // 隐藏配置界面
               document.getElementById('configContainer').style.display = 'none';
@@ -319,12 +372,8 @@ const appState = {
     loadWiFiConfigs();
 }
 
-
-  
-  
-  
-  // 获取当前中继配置状态
-  async function fetchCurrentConfig() {
+// 获取当前中继配置状态
+async function fetchCurrentConfig() {
     const data = await fetchData('/cgi-bin/wx/integrated.sh?action=getconfig');
     if (data) {
         document.getElementById('currentSSID').textContent = data.ssid;
@@ -332,14 +381,15 @@ const appState = {
         document.getElementById('currentBand').textContent = data.band.toUpperCase();
         document.getElementById('currentInterface').textContent = data.interface;
         document.getElementById('currentBridgeStatus').textContent = data.bridge_status;
+        document.getElementById('currentnetworkstatus').textContent = data.network_status;
         console.log("获取当前中继 WiFi 状态");
     } else {
         //displayErrorMessage('获取当前中继配置状态失败');
         console.error("获取当前中继配置状态失败");
     }
-  }
-  // 显示自动切换页面
-  function showAutoSwitchPage() {
+}
+// 显示自动切换页面
+function showAutoSwitchPage() {
       const autoSwitchPage = document.getElementById('autoSwitchPage');
       const configContainer = document.getElementById('configContainer');
       const manageContainer = document.getElementById('manageContainer');
@@ -359,10 +409,9 @@ const appState = {
       if (successMessage) {
           successMessage.style.display = 'none';
       }
-  }
+}  
   
-  
-  async function startAutoSwitch() {
+async function startAutoSwitch() {
       const statusElement = document.getElementById('autoSwitchStatus');
       statusElement.textContent = '';  // 清空状态文本
   
@@ -410,7 +459,7 @@ const appState = {
           console.error('请求失败，错误信息：', error);
           statusElement.textContent = `请求失败，错误信息：${error.message}`;
       }
-  }
+}
   
 
 // 处理定时检测功能
@@ -450,14 +499,30 @@ async function autoSwitchTimer() {
     }
 }
 
-  // 事件监听
-  document.getElementById('password').addEventListener('keydown', validatePassword);
-  document.getElementById('confirmButton').addEventListener('click', validatePassword);
-  document.getElementById('saveButton').addEventListener('click', saveConfig);
-  // 添加下拉框的鼠标事件
-  document.getElementById('wifiNameSelect').addEventListener('mousedown', async function() {
+document.getElementById('encryption').addEventListener('change', function () {
+    const encryptionType = this.value;
+    const passwordContainer = document.getElementById('passwordContainer');
+    // 检查选择的加密类型，隐藏或显示密码输入框
+    if (encryptionType === 'none' || encryptionType === 'owe') {
+        // 如果是无加密类型，隐藏密码输入框
+        passwordContainer.style.display = 'none';
+        document.getElementById('wifiPwd').value = ''; // 清空密码字段
+    } else {
+        // 如果是其他类型，显示密码输入框
+        passwordContainer.style.display = 'block';
+    }
+});
+
+  
+// 事件监听
+document.getElementById('password').addEventListener('keydown', validatePassword);
+document.getElementById('confirmButton').addEventListener('click', validatePassword);
+document.getElementById('saveButton').addEventListener('click', saveConfig);
+// 添加下拉框的鼠标事件
+document.getElementById('wifiNameSelect').addEventListener('mousedown', async function() {
     console.log('刷新下拉框');
     await loadWiFiConfigs();  // 每次点击下拉框时重新加载配置
-  });
-
+});
+// 初始化时根据默认选择隐藏密码框（可选）
+document.getElementById('encryption').dispatchEvent(new Event('change'));
 
