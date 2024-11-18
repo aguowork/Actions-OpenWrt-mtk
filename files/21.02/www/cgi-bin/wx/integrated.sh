@@ -13,7 +13,7 @@ RETRYWIFI_TIMES="688"
 #桥接后还是无法联网，则重启次数
 RESTART="10"
 # 用于检测互联网连通性的服务器地址
-PING_HOST="www.baidu.com"
+PING_HOST="119.29.29.29"
 # 获取当前脚本所在目录 日志文件的存储路径
 LOG_FILE="$(dirname "$(readlink -f "$0")")/$(basename $0 .sh).log"
 # 设备名称
@@ -334,7 +334,10 @@ auto_connect_wifi() {
                 WIFI_COUNT=${#WIFI_NAMES[@]}  # 获取有效名称的数量
                 # 频段WIFI_COUNT是否等于0
                 if [ "$WIFI_COUNT" -eq 0 ]; then
-                    log_message "wifi-config.json文件wifi字段为空，请检查配置文件！"
+                    log_message "已知热点为空，请检查！"
+                    exit 0 # 终止脚本运行
+                elif [ "$WIFI_COUNT" -ge 2 ]; then
+                    log_message "已知热点少于两个，请检查！"
                     exit 0 # 终止脚本运行
                 fi
             fi
@@ -435,7 +438,7 @@ config_function() {
         # 提交 uci 配置更改
         uci commit wireless
         # 保存应用 WiFi 设置
-        wifi reload
+        #wifi reload
         # 返回成功状态
         echo "Content-Type: text/plain"
         echo ""
@@ -489,6 +492,27 @@ auto_crontab() {
     # 获取前端传递的 interval 参数
     interval=$(echo "$QUERY_STRING" | sed -n 's/.*interval=\([^&]*\).*/\1/p')
 
+    # 正则表达式，用于匹配目标任务
+    regex="^\*\/([0-5]?\d) \* \* \* \* if \[ ! -x \/www\/cgi-bin\/wx\/integrated.sh \]; then chmod \+x \/www\/cgi-bin\/wx\/integrated.sh; fi && export QUERY_STRING=\"action=autowifi\"; \/www\/cgi-bin\/wx\/integrated.sh"
+
+    # 获取当前 crontab 内容
+    current_crontab=$(crontab -l 2>/dev/null)
+
+    # 如果 interval 是 0，删除任务并退出
+    if [ "$interval" == "0" ]; then
+        # 检查是否存在目标任务
+        if echo "$current_crontab" | grep -qE "$regex"; then
+            # 删除目标任务
+            new_crontab=$(echo "$current_crontab" | grep -vE "$regex")
+            echo "$new_crontab" | crontab -
+            /etc/init.d/cron reload
+            echo "断网自动切换热点任务已删除。"
+        else
+            echo "断网自动切换热点任务未启用。"
+        fi
+        exit 0
+    fi
+
     # 检查 interval 是否有效
     if [ -z "$interval" ] || [ "$interval" -le 0 ] || [ "$interval" -gt 60 ]; then
         echo "无效的时间间隔（1-60分钟）。"
@@ -497,43 +521,31 @@ auto_crontab() {
 
     # 要设置的命令
     cron_command="*/$interval * * * * if [ ! -x /www/cgi-bin/wx/integrated.sh ]; then chmod +x /www/cgi-bin/wx/integrated.sh; fi && export QUERY_STRING=\"action=autowifi\"; /www/cgi-bin/wx/integrated.sh"
-    
-    # 正则表达式
-    regex="^\*\/([0-5]?\d) \* \* \* \* if \[ ! -x \/www\/cgi-bin\/wx\/integrated.sh \]; then chmod \+x \/www\/cgi-bin\/wx\/integrated.sh; fi && export QUERY_STRING=\"action=autowifi\"; \/www\/cgi-bin\/wx\/integrated.sh"
 
-    # 获取当前 crontab 内容并存储到变量中
-    current_crontab=$(crontab -l 2>/dev/null)
-
-    # 检查 crontab 中是否已存在相似任务
+    # 检查 crontab 中是否已存在目标任务
     existing_task=$(echo "$current_crontab" | grep -E "$regex")
 
-    # 如果找到了相似的任务
     if [ -n "$existing_task" ]; then
-        # 判断现有任务与新的 cron 任务是否完全一致
+        # 如果现有任务与新的任务一致
         if [ "$existing_task" == "$cron_command" ]; then
-            echo "相同的时间任务已存在，无需更新。"
-            exit 0
+            echo "相同的定时任务已存在，无需更新。"
         else
-            # 任务内容不一致，删除旧任务并添加新任务
-            #echo "任务时间内容不同，删除旧的定时任务并添加新的任务。"
+            # 任务内容不同，更新任务
             new_crontab=$(echo "$current_crontab" | grep -vE "$regex")
             echo "$new_crontab" | (cat - ; echo "$cron_command") | crontab -
-            # 重启 cron 服务
             /etc/init.d/cron reload
-            echo "已设为每 $interval 分钟检测一次。"
-            echo "无法联网则自动切换已知的WiFi"
-            exit 0
+            echo "定时任务已更新为每 $interval 分钟执行一次。"
         fi
     else
-        # 如果没有找到相同的任务，添加新的任务
-        echo "没有定时任务，已添加任务。"
+        # 如果没有相似任务，直接添加
         echo "$current_crontab" | (cat - ; echo "$cron_command") | crontab -
-        # 重启 cron 服务
         /etc/init.d/cron reload
         echo "定时任务已设置为每 $interval 分钟执行一次。"
-        exit 0
     fi
+
+    exit 0
 }
+
 
 
 # 解析 QUERY_STRING 获取 action 参数

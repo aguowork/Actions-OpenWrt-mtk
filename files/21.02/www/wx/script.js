@@ -1,11 +1,13 @@
 const appState = {
     wifiConfigurations: {
         name: '',
+        encryption: '',
         password: '',
         band: ''
     },
     currentRelayConfig: {
         ssid: '',
+        encryption: '',
         key: '',
         band: '',
         interface: '',
@@ -465,7 +467,7 @@ async function startAutoSwitch() {
 // 处理定时检测功能
 async function autoSwitchTimer() {
     const statusElement = document.getElementById('autoSwitchStatus');
-    const interval = prompt("Crontab任务断网自动连接已知热点\n\n请输入检测间隔时间(分钟,最大59分钟次)\n\n建议15-30");
+    const interval = prompt("Crontab任务断网自动连接已知热点\n\n请输入检测间隔时间(分钟,最大59分钟次)\n\n建议15-30\n\n输入 0 则是关闭");
     // 清空状态文本
     statusElement.textContent = "";
     if (!interval) {
@@ -475,8 +477,8 @@ async function autoSwitchTimer() {
     }
     // 检查输入是否为数字
     const intervalNumber = parseInt(interval, 10);
-
-    if (isNaN(intervalNumber) || intervalNumber <= 0 || intervalNumber > 59) {
+    // 检查输入是否为有效数字 或是否在范围内 (1-59)
+    if (isNaN(intervalNumber) || intervalNumber < 0 || intervalNumber > 59) {
         alert("无效的时间，请输入1到59之间的整数。");
         return;
     }
