@@ -15,7 +15,7 @@ sed -i 's/192.168.6.1/192.168.100.1/g' package/base-files/files/bin/config_gener
 sed -i 's/\(root::0:0:99999:7:::\)/root:$1$2mmQ7Xbj$5FG6wrw3RA2zD\/WKktai\/.:19782:0:99999:7:::/g' package/base-files/files/etc/shadow
 
 # 修改主机名字（不能纯数字或者使用中文）
-sed -i "s/hostname='.*'/hostname='TL-WDR5660'/g" package/base-files/files/bin/config_generate
+sed -i "s/hostname='.*'/hostname='SR1041ZT'/g" package/base-files/files/bin/config_generate
 
 # 修改开源驱动wifi名称
 #sed -i 's/OpenWrt/R30B1_AX3000/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
