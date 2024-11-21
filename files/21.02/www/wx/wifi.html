@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>系统配置</title>
+    <title>系统管理</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
@@ -14,30 +14,77 @@
         <input type="password" id="password" placeholder="输入密码">
         <input type="button" value="确认" id="confirmButton">
     </div>
-    <!-- 配置容器，初始隐藏 -->
-    <div class="container hidden" id="configContainer">
-        <div class="current-info">
-            <h2>当前中继热点</h2>
-            <p>名称：<span id="currentSSID"></span></p>
-            <p>密码：<span id="currentKEY"></span></p>
-            <p>频段：<span id="currentBand"></span></p>
-            <p>接口：<span id="currentInterface"></span></p>
-            <p>状态：<span id="currentBridgeStatus"></span></p>
-            <p>网络：<span id="currentnetworkstatus"></span></p>
+
+    <!-- 主界面容器 -->
+    <div class="main-container hidden" id="mainContainer">
+        <!-- 导航栏 -->
+        <nav class="nav-bar">
+            <div class="nav-item active" data-target="statusContainer">
+                <i class="nav-icon">📶</i>
+                <span>当前配置</span>
+            </div>
+            <div class="nav-item" data-target="configContainer">
+                <i class="nav-icon">📡</i>
+                <span>热点切换</span>
+            </div>
+            <div class="nav-item" data-target="manageContainer">
+                <i class="nav-icon">📋</i>
+                <span>热点管理</span>
+            </div>
+            <div class="nav-item" data-target="autoSwitchPage">
+                <i class="nav-icon">🔄</i>
+                <span>自动切换</span>
+            </div>
+        </nav>
+
+        <!-- WiFi状态容器 -->
+        <div class="content-container active" id="statusContainer">
+            <div class="current-info">
+                <h2>当前中继热点</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>名称：</label>
+                        <span id="currentSSID"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>密码：</label>
+                        <span id="currentKEY"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>频段：</label>
+                        <span id="currentBand"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>接口：</label>
+                        <span id="currentInterface"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>状态：</label>
+                        <span id="currentBridgeStatus"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>网络：</label>
+                        <span id="currentnetworkstatus"></span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="config-section">
-            <h2>切换热点配置</h2>
-            <label for="wifiNameSelect">已知热点  <span id="manageButton" style="cursor: pointer; color: #00ff95; text-decoration: underline;" onclick="showManageWiFi()">管理</span> <span id="autoSwitchButton" style="cursor: pointer; color: #00ff95; text-decoration: underline;" onclick="showAutoSwitchPage()">自动切换</span></label>
-            <select id="wifiNameSelect">
-                <option value="">手动输入</option>
-            </select>
+
+        <!-- 切换热点配置容器 -->
+        <div class="content-container" id="configContainer">
+            <h2>热点切换配置</h2>
+            <div class="input-group">
+                <label for="wifiNameSelect">已知热点</label>
+                <select id="wifiNameSelect">
+                    <option value="">手动输入</option>
+                </select>
+            </div>
             <div class="input-group">
                 <label for="wifiNameInput">WiFi名称</label>
-                <input type="text" id="wifiNameInput" placeholder="输入你知道的 WiFi">
+                <input type="text" id="wifiNameInput" placeholder="输入WiFi名称">
             </div>
-            
             <div class="input-group">
-                <label for="encryption">WIFI安全性</label>
+                <label for="encryption">安全性</label>
                 <select id="encryption">
                     <option value="psk2">WPA2-PSK (强安全性)</option>
                     <option value="sae">WPA3-SAE (强安全性)</option>
@@ -46,66 +93,119 @@
                     <option value="none" selected>无加密 (开放网络)</option>
                 </select>
             </div>
-            <!-- 这里在安全性选择后，再显示密码输入框，如果选择的不是none就显示下面的密码输入框 -->
             <div class="input-group" id="passwordContainer">
                 <label for="wifiPwd">WiFi密码</label>
-                <input type="text" id="wifiPwd" value="">
-            </div>            
+                <input type="text" id="wifiPwd">
+            </div>
             <div class="input-group">
                 <label for="wifiBand">WiFi频段</label>
                 <select id="wifiBand">
-                    <option value="" disabled selected hidden>请选择频段</option>
+                    <option value="" disabled selected>请选择频段</option>
                     <option value="2G">2.4G</option>
                     <option value="5G">5G</option>
                 </select>
             </div>
-            <input type="button" value="保存应用" id="saveButton">
+            <button id="saveButton">保存应用</button>
+        </div>
+
+        <!-- 管理界面 -->
+        <div class="content-container" id="manageContainer">
+            <h2>管理已知热点</h2>
+            <div class="wifi-list" id="wifiList"></div>
+            <div class="button-group">
+                <button onclick="deleteSelectedWiFi()">删除选中</button>
+            </div>
+        </div>
+
+        <!-- 自动切换页面 -->
+        <div class="content-container" id="autoSwitchPage">
+            <h2>自动切换热点</h2>
+            <div class="button-group">
+                <button id="startAutoSwitchButton" onclick="startAutoSwitch()">开始切换</button>
+                <button id="autoSwitchTimerButton" onclick="autoSwitchTimer()">定时检测</button>
+            </div>
+            <div class="status-container">
+                <pre id="autoSwitchStatus"></pre>
+            </div>
         </div>
     </div>
 
-    <!-- 管理界面 -->
-    <div class="container hidden" id="manageContainer">
-        <h2>管理已知热点</h2>
-        <div id="wifiList"></div>
-        <div class="button-group">
-            <button onclick="deleteSelectedWiFi()">删除</button>
-            <button onclick="returnToConfig()">返回</button>
-        </div>
-        <p id="errorMessage" style="color: red;"></p>
-    </div>
-    
-    <!-- 成功消息容器 -->
-    <div id="successMessage" class="hidden">
-        <div class="success-wrapper">
-            <h2>配置成功</h2>
-            <div class="success-content">
-                <p>名称：<span id="successSSID"></span></p>
-                <p>安全性：<span id="successEncryption"></span></p>
-                <p>密码：<span id="successKey"></span></p>
-                <p>频段：<span id="successBand"></span></p>
+    <!-- 添加配置成功弹窗 -->
+    <div id="successDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3>配置成功</h3>
+            <div class="confirm-content">
+                <div class="confirm-item">
+                    <label>热点名称：</label>
+                    <span id="successSSID"></span>
+                </div>
+                <div class="confirm-item">
+                    <label>安全性：</label>
+                    <span id="successEncryption"></span>
+                </div>
+                <div class="confirm-item">
+                    <label>热点密码：</label>
+                    <span id="successKey"></span>
+                </div>
+                <div class="confirm-item">
+                    <label>频段：</label>
+                    <span id="successBand"></span>
+                </div>
             </div>
-            <br>
-            <p class="success-note">请等待60秒</p>
-            <p class="success-note">WiFi重新连接后 检查连接状态</p>
-            <button onclick="returnToConfig()">返回配置</button>
+            <div class="dialog-tips">
+                <p class="dialog-tip">请等待60秒</p>
+                <p class="dialog-tip">WiFi重新连接后检查连接状态</p>
+            </div>
+            <div class="dialog-buttons">
+                <button onclick="closeSuccessDialog()" class="primary">返回配置</button>
+            </div>
         </div>
     </div>
-    <!-- 自动切换热点页面的容器初始状态为 hidden -->
-    <div id="autoSwitchPage" class="container" style="display: none;">
-        <h2>自动切换热点</h2>
-        <div class="button-group">
-            <!-- "开始切换" 按钮 -->
-            <input type="button" value="开始切换" id="startAutoSwitchButton" onclick="startAutoSwitch()">
-            <!-- "定时检测" 按钮 -->
-            <input type="button" value="定时检测" id="autoSwitchTimerButton" onclick="autoSwitchTimer()">
-            <!-- "返回配置" 按钮 -->
-            <input type="button" value="返回配置" id="returnToConfigButton" onclick="returnToConfig()">
-        </div>
-        <div id="autoSwitchStatusContainer">
-            <pre id="autoSwitchStatus"></pre>
+
+    <!-- 在 body 末尾添加自定义弹窗 -->
+    <div id="timerDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3>定时检测设置</h3>
+            <p class="dialog-desc">Crontab任务断网自动连接已知热点</p>
+            <div class="input-group">
+                <label for="timerInterval">检测间隔（分钟）</label>
+                <input type="number" id="timerInterval" min="0" max="59" placeholder="建议15-30">
+                <p class="dialog-tip">输入0则关闭定时检测</p>
+            </div>
+            <div class="dialog-buttons">
+                <button onclick="closeTimerDialog()">取消</button>
+                <button onclick="confirmTimer()" class="primary">确定</button>
+            </div>
         </div>
     </div>
-    
-    
+
+    <!-- 在 body 末尾添加保存确认弹窗 -->
+    <div id="saveConfirmDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3>确认切换热点</h3>
+            <div class="confirm-content">
+                <div class="confirm-item">
+                    <label>热点名称：</label>
+                    <span id="confirmSSID"></span>
+                </div>
+                <div class="confirm-item">
+                    <label>安全性：</label>
+                    <span id="confirmEncryption"></span>
+                </div>
+                <div class="confirm-item">
+                    <label>热点密码：</label>
+                    <span id="confirmKey"></span>
+                </div>
+                <div class="confirm-item">
+                    <label>频段：</label>
+                    <span id="confirmBand"></span>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <button onclick="closeSaveConfirmDialog()">取消</button>
+                <button onclick="confirmSave()" class="primary">确定</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

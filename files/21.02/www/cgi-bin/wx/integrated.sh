@@ -438,7 +438,7 @@ config_function() {
         # 提交 uci 配置更改
         uci commit wireless
         # 保存应用 WiFi 设置
-        #wifi reload
+        wifi reload
         # 返回成功状态
         echo "Content-Type: text/plain"
         echo ""
@@ -469,7 +469,7 @@ get_config() {
     get_wifi_essid=$(iwinfo "${sta_ifname}" info | awk -F'"' '/ESSID/{print $2}')
     get_wifi_bridge_status=$(if [[ -n "${get_wifi_essid}" ]]; then echo "已连接 ${get_wifi_essid}"; else echo "连接失败 ${get_wifi_essid}"; fi)
     #网络连接状态
-    get_wifi_network_status=$(if check_internet; then echo "已连接"; else echo "已断开"; fi)
+    get_wifi_network_status=$(if check_internet; then echo "已连接"; else echo "连接失败"; fi)
     # 返回包含当前 WiFi 名称、密码和频段的 JSON 格式数据
     echo "Content-Type: application/json; charset=utf-8"
     echo ""
