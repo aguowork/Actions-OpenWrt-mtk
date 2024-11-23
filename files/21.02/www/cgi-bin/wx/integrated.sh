@@ -18,6 +18,15 @@ PING_HOST="223.6.6.6"
 LOG_FILE="$(dirname "$(readlink -f "$0")")/$(basename $0 .sh).log"
 # 设备名称
 DEVICE_NAME=$(uci get system.@system[0].hostname)
+# uci set uhttpd.main.script_timeout='600'
+# uci set uhttpd.main.network_timeout='600'
+# uci commit uhttpd
+# /etc/init.d/uhttpd restart
+
+# uci get uhttpd.main.script_timeout
+# uci get uhttpd.main.network_timeout
+
+# uhttpd默认60秒，不足够脚本运行时间，需要修改超时时间
 
 # 错误处理函数
 handle_error() {
@@ -332,11 +341,11 @@ auto_connect_wifi() {
                 # 检查 wifi/name字段是否为空
                 WIFI_NAMES=($(jq -r '.wifi[] | select(.name != null and .name != "") | .name' "$CONFIG_FILE" 2>/dev/null))
                 WIFI_COUNT=${#WIFI_NAMES[@]}  # 获取有效名称的数量
-                # 频段WIFI_COUNT是否等于0
-                if [ "$WIFI_COUNT" -eq 0 ]; then
+                # 频段WIFI_COUNT是否小于等于0
+                if [ "$WIFI_COUNT" -le 0 ]; then
                     log_message "已知热点为空，请检查！"
                     exit 0 # 终止脚本运行
-                elif [ "$WIFI_COUNT" -ge 2 ]; then
+                elif [ "$WIFI_COUNT" -lt 2 ]; then # 频段WIFI_COUNT是否小于2
                     log_message "已知热点少于两个，请检查！"
                     exit 0 # 终止脚本运行
                 fi
@@ -390,6 +399,41 @@ save_wifi_config() {
     # 检查配置文件是否存在，如果不存在则创建一个空的 JSON 结构
     [ ! -f "$CONFIG_FILE" ] && echo '{"wifi":[],"autowifiranking":[{"autowifiname":["Name1","Name2"],"CQ_TIMES":0}]}'>"$CONFIG_FILE"
 
+    #这下面的判断我感觉根本就不需要在后端判断，在前端去判断就好了，此处待优化
+    # 基本字段验证
+    if [ -z "$config_SSID" ] || [ -z "$cinfig_encryption" ] || [ -z "$config_BAND" ]; then
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"status": "error", "message": "请输入正确的WiFi名称、安全性、频段。"}'
+        exit 1
+    fi
+
+    # 密码验证逻辑
+    if [ "$cinfig_encryption" != "none" ] && [ "$cinfig_encryption" != "owe" ]; then
+        # 检查密码是否为空
+        if [ -z "$config_PASSWORD" ]; then
+            echo "Content-Type: application/json"
+            echo ""
+            echo '{"status": "error", "message": "请输入WiFi密码"}'
+            exit 1
+        fi
+        
+        # 检查密码长度（最少8位，最多63位）
+        password_length=${#config_PASSWORD}
+        if [ "$password_length" -lt 8 ]; then
+            echo "Content-Type: application/json"
+            echo ""
+            echo '{"status": "error", "message": "WiFi密码长度不能少于8位"}'
+            exit 1
+        fi
+        if [ "$password_length" -gt 63 ]; then
+            echo "Content-Type: application/json"
+            echo ""
+            echo '{"status": "error", "message": "WiFi密码长度不能超过63位"}'
+            exit 1
+        fi
+    fi
+    
     # 使用 jq 处理 JSON 文件
     jq --arg ssid "$config_SSID" --arg encryption "$cinfig_encryption" --arg password "$config_PASSWORD" --arg band "$config_BAND" --arg time "$config_CURRENT_TIME" \
        'if (.wifi | any(.name == $ssid)) then
@@ -438,7 +482,7 @@ config_function() {
         # 提交 uci 配置更改
         uci commit wireless
         # 保存应用 WiFi 设置
-        wifi reload
+        #wifi reload
         # 返回成功状态
         echo "Content-Type: text/plain"
         echo ""
@@ -467,9 +511,9 @@ get_config() {
     get_wifi_Interface=$(if [[ -n "${sta_network}" ]]; then echo "${sta_network}"; else echo "不存在 ${sta_network} 接口"; fi)
     # 判断当前中继 WiFi 是否连接 $(ifstatus "wwan" &> /dev/null)
     get_wifi_essid=$(iwinfo "${sta_ifname}" info | awk -F'"' '/ESSID/{print $2}')
-    get_wifi_bridge_status=$(if [[ -n "${get_wifi_essid}" ]]; then echo "已连接 ${get_wifi_essid}"; else echo "连接失败 ${get_wifi_essid}"; fi)
+    get_wifi_bridge_status=$(if [[ -n "${get_wifi_essid}" ]]; then echo "连接成功 ${get_wifi_essid}"; else echo "连接失败 ${get_wifi_essid}"; fi)
     #网络连接状态
-    get_wifi_network_status=$(if check_internet; then echo "已连接"; else echo "连接失败"; fi)
+    get_wifi_network_status=$(if check_internet; then echo "连接成功"; else echo "连接失败"; fi)
     # 返回包含当前 WiFi 名称、密码和频段的 JSON 格式数据
     echo "Content-Type: application/json; charset=utf-8"
     echo ""

@@ -4,13 +4,14 @@
     <title>系统管理</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛜</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <script src="script.js" defer></script>
 </head>
 <body>
     <!-- 密码输入容器 -->
     <div class="container" id="loginContainer">
-        <h2>管理密码</h2>
+        <h2>密码验证</h2>
         <input type="password" id="password" placeholder="输入密码">
         <input type="button" value="确认" id="confirmButton">
     </div>
@@ -43,27 +44,27 @@
                 <h2>当前中继热点</h2>
                 <div class="info-grid">
                     <div class="info-item">
-                        <label>名称：</label>
+                        <label>🆔名称：</label>
                         <span id="currentSSID"></span>
                     </div>
                     <div class="info-item">
-                        <label>密码：</label>
-                        <span id="currentKEY"></span>
+                        <label>🔏密码：</label>
+                        <span id="currentKEY" class="password-field" onclick="togglePassword(this)"></span>
                     </div>
                     <div class="info-item">
-                        <label>频段：</label>
+                        <label>📶频段：</label>
                         <span id="currentBand"></span>
                     </div>
                     <div class="info-item">
-                        <label>接口：</label>
+                        <label>🔗接口：</label>
                         <span id="currentInterface"></span>
                     </div>
                     <div class="info-item">
-                        <label>状态：</label>
+                        <label>✌️状态：</label>
                         <span id="currentBridgeStatus"></span>
                     </div>
                     <div class="info-item">
-                        <label>网络：</label>
+                        <label>🌐网络：</label>
                         <span id="currentnetworkstatus"></span>
                     </div>
                 </div>
@@ -127,6 +128,9 @@
             <div class="status-container">
                 <pre id="autoSwitchStatus"></pre>
             </div>
+            <div class="auto-switch-tip" id="autoSwitchTip">
+                自动切换会断开WiFi连接，输出错误是正常的
+            </div>
         </div>
     </div>
 
@@ -153,7 +157,7 @@
                 </div>
             </div>
             <div class="dialog-tips">
-                <p class="dialog-tip">请等待60秒</p>
+                <p class="dialog-tip">等待 60 秒</p>
                 <p class="dialog-tip">WiFi重新连接后检查连接状态</p>
             </div>
             <div class="dialog-buttons">
@@ -170,7 +174,7 @@
             <div class="input-group">
                 <label for="timerInterval">检测间隔（分钟）</label>
                 <input type="number" id="timerInterval" min="0" max="59" placeholder="建议15-30">
-                <p class="dialog-tip">输入0则关闭定时检测</p>
+                <p class="dialog-tip">⚠️ 输入 0 则关闭定时检测</p>
             </div>
             <div class="dialog-buttons">
                 <button onclick="closeTimerDialog()">取消</button>
@@ -206,6 +210,12 @@
                 <button onclick="confirmSave()" class="primary">确定</button>
             </div>
         </div>
+    </div>
+
+    <!-- 在body末尾添加加载动画容器 -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <div class="loading-text">处理中...</div>
     </div>
 </body>
 </html>

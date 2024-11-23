@@ -1,52 +1,61 @@
+/* 定义常用颜色变量 */
+:root {
+    --primary-color: #00ff95;
+    --secondary-color: #00b8ff;
+    --background-color: #282828;
+    --text-color: #ffffff;
+    --highlight-color: #ffd700;
+    --border-color: #4a5662;
+    --input-bg-color: #455844;
+    --input-focus-bg-color: #4c614a;
+    --disabled-bg-color: #2d2d2d;
+    --disabled-text-color: #666;
+}
+
 /* 基础样式重置 */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     background-color: #181818;
-    color: #ffffff;
+    color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    font-size: 16px; /* 基础字体大小 */
+    font-size: 16px;
 }
 
-/* 登录容器样式 */
+/* 容器样式 */
+#loginContainer, .main-container, .content-container {
+    background: var(--background-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
 #loginContainer {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #282828;
     padding: 1.5rem;
-    border-radius: 16px;
     width: 90%;
     max-width: 400px;
     text-align: center;
-    z-index: 2000; /* 确保在最上层 */
+    z-index: 2000;
 }
 
 #loginContainer input[type="password"] {
-    height: 48px; /* 更大的输入框 */
-    margin: 1rem 0;
-    font-size: 1rem;
+    margin-bottom: 0.4rem;
 }
 
-#loginContainer input[type="button"] {
-    height: 48px;
-    width: 100%;
-    font-size: 1.1rem;
-}
-
-/* 主容器样式 */
 .main-container {
-    display: none; /* 默认隐藏 */
+    display: none;
     flex-direction: column;
     flex: 1;
     padding: 0.5rem;
@@ -54,11 +63,22 @@ body {
     width: 100%;
 }
 
+.content-container {
+    display: none;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.content-container.active {
+    display: flex;
+}
+
 /* 导航栏样式 */
 .nav-bar {
     display: flex;
     justify-content: space-around;
-    background: #282828;
     padding: 0.5rem;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
@@ -72,43 +92,25 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: 0.8rem;
     cursor: pointer;
     border-radius: 12px;
     transition: all 0.3s ease;
     flex: 1;
     text-align: center;
-}
-
-.nav-item span {
-    font-size: 0.9rem;
-    margin-top: 0.4rem;
+    min-height: 72px;
 }
 
 .nav-item.active {
     background: #3a3a3a;
-    color: #00ff95;
+    color: var(--primary-color);
     transform: scale(1.05);
 }
 
 .nav-icon {
     font-size: 1.5rem;
-}
-
-/* 内容容器样式 */
-.content-container {
-    display: none;
-    background: #282828;
-    padding: 1rem;
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    margin-bottom: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.content-container.active {
-    display: flex;
+    margin-bottom: 0.2rem;
 }
 
 /* 信息网格布局 */
@@ -128,7 +130,7 @@ body {
 }
 
 .info-item label {
-    color: #ffd700;
+    color: var(--highlight-color);
     font-size: 0.95rem;
     min-width: 4em;
     flex-shrink: 0;
@@ -136,7 +138,6 @@ body {
 
 .info-item span {
     flex: 1;
-    /* 确保长文本可以换行 */
     word-break: break-word;
 }
 
@@ -147,7 +148,7 @@ body {
 
 .input-group label {
     display: block;
-    color: #ffd700;
+    color: var(--highlight-color);
     margin-bottom: 0.15rem;
     font-size: 0.95rem;
 }
@@ -162,130 +163,36 @@ select {
     padding: 0 1rem;
     border: none;
     border-radius: 12px;
-    background: #3a3a3a;  /* 稍微亮一点的深灰色 */
-    color: #fff;
+    background: var(--input-bg-color);
+    color: var(--text-color);
     font-size: 1rem;
     appearance: none;
     margin: 0;
 }
 
-/* 已知热点下拉框特殊样式 */
-#wifiNameSelect {
-    background-color: #404c58;  /* 蓝色调 */
-    border: 1px solid #4a5662;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* 普通输入框和下拉框的绿色调样式 */
-#wifiNameInput,
-#encryption,
-#wifiPwd,
-#wifiBand {
-    background-color: #455844;  /* 绿色调 */
-    border: 1px solid #506652;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* 下拉框焦点样式 */
-#wifiNameSelect:focus {
-    background-color: #465461;  /* 稍亮的蓝色调 */
-    outline: 1px solid #5c7080;
-    box-shadow: 0 0 0 2px rgba(92, 112, 128, 0.1);
-}
-
-/* 输入框和其他下拉框焦点样式 */
-#wifiNameInput:focus,
-#encryption:focus,
-#wifiPwd:focus,
-#wifiBand:focus {
-    background-color: #4c614a;  /* 稍亮的绿色调 */
-    outline: 1px solid #5e8057;
-    box-shadow: 0 0 0 2px rgba(94, 128, 87, 0.1);
-}
-
-/* 下拉框选项样式 */
-#wifiNameSelect option {
-    background-color: #404c58;  /* 与下拉框本身颜色一致 */
-}
-
-#encryption option,
-#wifiBand option {
-    background-color: #455844;  /* 与下拉框本身颜色一致 */
-}
-
-/* 输入框占位符文本颜色 */
-#wifiNameInput::placeholder,
-#wifiPwd::placeholder {
-    color: rgba(255, 255, 255, 0.5);  /* 半透明白色 */
-}
-
-/* 输入框和下拉框的通用悬停效果 */
-#wifiNameSelect:hover,
-#wifiNameInput:hover,
-#encryption:hover,
-#wifiPwd:hover,
-#wifiBand:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-}
-
-/* 禁用状态样式 */
-#wifiNameSelect:disabled,
-#wifiNameInput:disabled,
-#encryption:disabled,
-#wifiPwd:disabled,
-#wifiBand:disabled {
-    background: #2d2d2d;
-    color: #666;
-    border-color: #3d3d3d;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* 输入框焦点样式 */
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="number"]:focus,
+input:focus,
 select:focus {
-    background: #404040;  /* 焦点时稍微亮一点 */
-    outline: 1px solid #00ff95;  /* 绿色轮廓 */
-    box-shadow: 0 0 0 2px rgba(0, 255, 149, 0.1);  /* 轻微的发光效果 */
+    background: #404040;
+    outline: 1px solid var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 255, 149, 0.1);
 }
 
-/* 下拉框箭头样式 */
-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ff95' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1.2em;
-    padding-right: 2.5rem;
-}
-
-/* 输入框占位符文本颜色 */
 input::placeholder {
     color: #888;
 }
 
-/* 禁用状态样式 */
 input:disabled,
 select:disabled {
-    background: #2d2d2d;
-    color: #666;
+    background: var(--disabled-bg-color);
+    color: var(--disabled-text-color);
     cursor: not-allowed;
-}
-
-/* 选项样式 */
-select option {
-    background: #333;
-    color: #fff;
-    padding: 0.5rem;
 }
 
 /* 按钮样式 */
 button, 
 input[type="button"] {
-    background: #00ff95;
-    color: #181818;
+    background: #4a5d75;
+    color: #ffffff;
     border: none;
     height: 48px;
     padding: 0 1.5rem;
@@ -293,26 +200,65 @@ input[type="button"] {
     cursor: pointer;
     font-weight: bold;
     font-size: 1rem;
-    width: 100%; /* 移动端下按钮占满宽度 */
-    transition: transform 0.2s, background-color 0.2s;
+    width: 100%;
+    transition: all 0.2s ease;
 }
 
-button:active {
+button:hover,
+input[type="button"]:hover {
+    background: #576d89;
+}
+
+button:active,
+input[type="button"]:active {
     transform: scale(0.98);
-    background: #00cc78;
+    background: #3d4d61;
 }
 
 .button-group {
     display: flex;
     gap: 0.8rem;
-    flex-direction: column; /* 移动端按钮垂直排列 */
+    flex-direction: row;
+}
+
+.button-group button {
+    flex: 1;
+    min-width: 120px;
+    width: auto;
+}
+
+@media (max-width: 480px) {
+    .button-group {
+        flex-direction: row;
+    }
+    
+    #saveButton,
+    #manageContainer .button-group button {
+        width: 100%;
+    }
+    
+    #autoSwitchPage .button-group {
+        flex-direction: row;
+    }
+    
+    #autoSwitchPage .button-group button {
+        font-size: 0.9rem;
+        padding: 0 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    #saveButton,
+    #manageContainer .button-group button {
+        width: 100%;
+    }
 }
 
 /* WiFi列表样式 */
 .wifi-list {
     background: #333;
     border-radius: 12px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     max-height: calc(100vh - 300px);
     overflow-y: auto;
 }
@@ -353,12 +299,12 @@ button:active {
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    flex-shrink: 0; /* 防止内容被压缩 */
-    white-space: nowrap; /* 防止换行 */
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .wifi-band {
-    color: #00ff95;
+    color: var(--primary-color);
     font-size: 0.85rem;
     padding: 0.2rem 0.4rem;
     background: rgba(0, 255, 149, 0.1);
@@ -366,24 +312,22 @@ button:active {
 }
 
 .wifi-password {
-    color: #ffd700;
+    color: var(--highlight-color);
     font-size: 0.85rem;
     padding: 0.2rem 0.4rem;
     background: rgba(255, 215, 0, 0.1);
     border-radius: 4px;
 }
 
-/* 复选框样式优化 */
 .wifi-item input[type="checkbox"] {
     width: 20px;
     height: 20px;
     margin: 0;
     cursor: pointer;
     border-radius: 4px;
-    flex-shrink: 0; /* 防止复选框被压缩 */
+    flex-shrink: 0;
 }
 
-/* 移动端特别优化 */
 @media (max-width: 480px) {
     .wifi-item {
         padding: 0.6rem;
@@ -400,44 +344,44 @@ button:active {
     .wifi-details {
         gap: 0.4rem;
     }
-
-    .wifi-band,
-    .wifi-password {
-        font-size: 0.8rem;
-        padding: 0.15rem 0.3rem;
-    }
 }
 
-/* 状态容器样式 */
 .status-container {
     background: #333;
     padding: 1rem;
     border-radius: 12px;
-    height: calc(100vh - 250px);
+    flex: 1;
     overflow-y: auto;
+    margin-top: 0.4rem;
+    min-height: 0;
 }
 
 #autoSwitchStatus {
-    white-space: pre-wrap;
-    color: #ffd700;
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    white-space: pre;
+    word-wrap: normal;
+    color: var(--highlight-color);
     font-size: 0.95rem;
     line-height: 1.5;
+    margin: 0;
+    padding-right: 0.5rem;
 }
 
-/* 成功消息样式 */
 #successMessage {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.9);
-    display: none; /* 默认隐藏 */
+    display: none;
     justify-content: center;
     align-items: center;
     padding: 1rem;
-    z-index: 1000; /* 确保在最上层 */
+    z-index: 1000;
 }
 
 .success-wrapper {
-    background: #282828;
+    background: var(--background-color);
     padding: 1.5rem;
     border-radius: 16px;
     text-align: center;
@@ -450,129 +394,101 @@ button:active {
 }
 
 .success-note {
-    color: #ffd700;
+    color: var(--highlight-color);
     margin: 0.5rem 0;
     font-size: 0.9rem;
 }
 
-/* 标题样式 */
 h2 {
-    color: #00ff95;
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
+    color: transparent;
+    background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--primary-color) 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    padding: 0.3rem 0;
+    position: relative;
+    display: block;
+    width: 100%;
+    text-shadow: 0 0 20px rgba(0, 255, 149, 0.2);
+    animation: gradientMove 3s ease infinite;
 }
 
-/* 滚动条样式 */
-::-webkit-scrollbar {
-    width: 6px;
+h2::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        var(--primary-color) 20%,
+        var(--primary-color) 80%,
+        transparent 100%
+    );
+    animation: borderPulse 2s ease-in-out infinite;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+h2::after {
+    content: '◈';
+    position: absolute;
+    left: -1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    font-size: 0.8em;
+    opacity: 0.8;
+    text-shadow: 0 0 10px rgba(0, 255, 149, 0.5);
+    animation: glowPulse 2s ease-in-out infinite;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #666;
-    border-radius: 3px;
-}
-
-/* 媒体查询 - 桌面端适配 */
-@media (min-width: 768px) {
-    .main-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 1rem;
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 50%;
     }
-
-    .button-group {
-        flex-direction: row;
+    50% {
+        background-position: 100% 50%;
     }
-
-    button, 
-    input[type="button"] {
-        width: auto;
-    }
-
-    .info-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .wifi-details {
-        flex-direction: row;
-        gap: 1rem;
+    100% {
+        background-position: 0% 50%;
     }
 }
 
-/* 暗色模式适配 */
-@media (prefers-color-scheme: dark) {
-    input[type="text"],
-    input[type="password"],
-    select {
-        background-color: #2a2a2a;
+@keyframes borderPulse {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
     }
 }
 
-/* 主容器默认隐藏 */
-.main-container {
-    display: none; /* 默认隐藏 */
+@keyframes glowPulse {
+    0%, 100% {
+        opacity: 0.5;
+        transform: translateY(-50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.1);
+    }
 }
 
-/* 移除 .hidden 类，改用直接的 display 控制 */
-#mainContainer.hidden {
-    display: none;
-}
-
-/* 状态标签样式 */
-.status-tag {
-    display: inline-block;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.status-connected {
-    color: #00ff95;
-    background: rgba(0, 255, 149, 0.1);
-}
-
-.status-disconnected {
-    color: #ff4d4f;
-    background: rgba(255, 77, 79, 0.1);
-}
-
-/* 调整信息项样式以适应新的标签 */
-.info-item {
-    background: #333;
-    padding: 1rem;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-}
-
-.info-item label {
-    color: #ffd700;
-    font-size: 0.95rem;
-    min-width: 4em;
-    flex-shrink: 0;
-}
-
-.info-item span {
-    flex: 1;
-    /* 确保长文本可以换行 */
-    word-break: break-word;
-}
-
-/* 移动端特别优化 */
 @media (max-width: 480px) {
-    .status-tag {
-        font-size: 0.8rem;
-        padding: 0.15rem 0.3rem;
+    h2 {
+        font-size: 1.2rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    h2::after {
+        left: -0.8rem;
     }
 }
 
-/* 弹窗样式 */
 .dialog {
     position: fixed;
     top: 0;
@@ -591,7 +507,7 @@ h2 {
 }
 
 .dialog-content {
-    background: #282828;
+    background: var(--background-color);
     padding: 1.5rem;
     border-radius: 16px;
     width: 90%;
@@ -599,21 +515,26 @@ h2 {
 }
 
 .dialog-content h3 {
-    color: #00ff95;
+    color: var(--primary-color);
     margin-bottom: 1rem;
     font-size: 1.2rem;
 }
 
 .dialog-desc {
-    color: #ffd700;
+    color: var(--highlight-color);
     margin-bottom: 1rem;
     font-size: 0.9rem;
 }
 
 .dialog-tip {
-    color: #888;
-    font-size: 0.8rem;
-    margin-top: 0.5rem;
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+    margin-top: 0.8rem;
+    padding: 0.5rem;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .dialog input[type="number"] {
@@ -640,23 +561,29 @@ h2 {
 }
 
 .dialog-buttons button.primary {
-    background: #00ff95;
+    background: #5b6b99;
+}
+
+.dialog-buttons button.primary:hover {
+    background: #6b7db3;
+}
+
+.dialog-buttons button.primary:active {
+    background: #4d5a82;
 }
 
 .dialog-buttons button:not(.primary) {
-    background: #444;  /* 改为更亮的灰色 */
-    color: #fff;      /* 白色文字 */
+    background: #4e4e4e;
 }
 
 .dialog-buttons button:not(.primary):hover {
-    background: #555;  /* 悬停时更亮 */
+    background: #5a5a5a;
 }
 
 .dialog-buttons button:not(.primary):active {
-    background: #333;  /* 点击时稍暗 */
+    background: #424242;
 }
 
-/* 确认弹窗内容样式 */
 .confirm-content {
     background: #333;
     padding: 1rem;
@@ -675,7 +602,7 @@ h2 {
 }
 
 .confirm-item label {
-    color: #ffd700;
+    color: var(--highlight-color);
     min-width: 6em;
     font-size: 0.9rem;
 }
@@ -686,21 +613,18 @@ h2 {
     text-align: right;
 }
 
-/* 对话框提示文本容器 */
 .dialog-tips {
     margin: 1rem 0;
     text-align: center;
 }
 
-/* 调整成功弹窗中的提示文本样式 */
 #successDialog .dialog-tip {
-    color: #ffd700;
+    color: var(--highlight-color);
     font-size: 0.9rem;
     margin: 0.5rem 0;
     text-align: center;
 }
 
-/* 成功弹窗中的按钮样式 */
 #successDialog .dialog-buttons {
     justify-content: center;
 }
@@ -709,27 +633,22 @@ h2 {
     min-width: 120px;
 }
 
-/* 输入框和选择框的容器样式调整 */
 #configContainer .input-group:not(:last-child) {
     margin-bottom: 0.2rem;
 }
 
-/* 最后一个输入组和保存按钮之间的间距 */
 #configContainer .input-group:last-of-type {
     margin-bottom: 0.4rem;
 }
 
-/* 密码框容器特殊处理 */
 #passwordContainer {
     margin-bottom: 0.2rem;
 }
 
-/* 标题和第一个输入组之间的间距 */
 #configContainer h2 {
     margin-bottom: 0.4rem;
 }
 
-/* 点击 emoji 动画样式 */
 .click-emoji {
     position: fixed;
     pointer-events: none;
@@ -739,7 +658,6 @@ h2 {
     animation: emojiFloat 1.5s ease-out forwards;
 }
 
-/* emoji 浮动动画 */
 @keyframes emojiFloat {
     0% {
         transform: translate(-50%, -50%) scale(0.5);
@@ -753,4 +671,286 @@ h2 {
         transform: translate(-50%, -150%) scale(1);
         opacity: 0;
     }
+}
+
+@media (max-width: 480px) {
+    .dialog-tip {
+        font-size: 0.85rem;
+        padding: 0.4rem;
+    }
+}
+
+/* 状态和网络的绿色样式 */
+.status-tag {
+    display: inline-block;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-connected {
+    color: var(--primary-color);
+    background: rgba(0, 255, 149, 0.1);
+}
+
+.status-disconnected {
+    color: #ff4d4f;
+    background: rgba(255, 77, 79, 0.1);
+}
+
+/* 添加密码字段的样式 */
+.password-field {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+.password-field:hover {
+    opacity: 0.8;
+}
+
+.password-field:active {
+    transform: scale(0.98);
+}
+
+/* 添加加载动画样式 */
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner.hidden {
+    display: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--primary-color);
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    color: var(--primary-color);
+    margin-top: 1rem;
+    font-size: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 修改自动切换页面的容器样式 */
+#autoSwitchPage.content-container {
+    display: none;
+    flex-direction: column;
+    height: calc(100vh - 180px);
+    max-height: calc(100vh - 180px);
+    overflow: hidden;
+    padding: 0.8rem;
+    gap: 0.4rem;
+}
+
+#autoSwitchPage.content-container.active {
+    display: flex;
+}
+
+/* 修改状态容器样式 */
+#autoSwitchPage .status-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #333;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* 修改状态文本区域样式 */
+#autoSwitchStatus {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    white-space: pre;
+    word-wrap: normal;
+    color: var(--highlight-color);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    padding-right: 0.5rem;
+}
+
+/* 自定义滚动条样式 */
+#autoSwitchStatus::-webkit-scrollbar {
+    width: 10px; /* 增加滚动条宽度 */
+    height: 10px; /* 增加水平滚动条高度 */
+}
+
+#autoSwitchStatus::-webkit-scrollbar-track {
+    background: #222; /* 滚动条轨道背景色 */
+    border-radius: 5px; /* 圆角 */
+}
+
+#autoSwitchStatus::-webkit-scrollbar-thumb {
+    background: #4a5d75; /* 使用按钮的背景颜色 */
+    border-radius: 5px; /* 圆角 */
+    border: 2px solid #333; /* 增加边框以突出滚动条 */
+}
+
+#autoSwitchStatus::-webkit-scrollbar-thumb:hover {
+    background: #576d89; /* 悬停时使用按钮悬停时的颜色 */
+}
+
+/* 自定义 WiFi 列表滚动条样式 */
+.wifi-list::-webkit-scrollbar {
+    width: 10px; /* 增加滚动条宽度 */
+}
+
+.wifi-list::-webkit-scrollbar-track {
+    background: #222; /* 滚动条轨道背景色 */
+    border-radius: 5px; /* 圆角 */
+}
+
+.wifi-list::-webkit-scrollbar-thumb {
+    background: #4a5d75; /* 使用按钮的背颜色 */
+    border-radius: 5px; /* 圆角 */
+    border: 2px solid #333; /* 增加边框以突出滚动条 */
+}
+
+.wifi-list::-webkit-scrollbar-thumb:hover {
+    background: #576d89; /* 悬停时使用按钮悬停时的颜色 */
+}
+
+.auto-switch-tip {
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* 添加WiFi选择按钮样式 */
+.wifi-select-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #4a5d75;
+    color: #ffffff;
+    border: none;
+    height: 48px;
+    padding: 0 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.wifi-select-button:hover {
+    background: #576d89;
+}
+
+/* WiFi选择列表样式 */
+.wifi-select-list {
+    background: #333;
+    border-radius: 12px;
+    margin: 1rem 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.wifi-select-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #444;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.wifi-select-item:last-child {
+    border-bottom: none;
+}
+
+.wifi-select-item:hover {
+    background-color: #3a3a3a;
+}
+
+.wifi-select-name {
+    color: #fff;
+    font-weight: 500;
+}
+
+.wifi-select-details {
+    display: flex;
+    gap: 0.8rem;
+}
+
+/* 自定义滚动条样式 */
+.wifi-select-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.wifi-select-list::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 5px;
+}
+
+.wifi-select-list::-webkit-scrollbar-thumb {
+    background: #4a5d75;
+    border-radius: 5px;
+    border: 2px solid #333;
+}
+
+.wifi-select-list::-webkit-scrollbar-thumb:hover {
+    background: #576d89;
+}
+
+/* 添加空状态样式 */
+.wifi-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #888;
+}
+
+.wifi-empty-state .nav-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.wifi-empty-state p {
+    margin: 0.3rem 0;
+    font-size: 1rem;
+}
+
+.wifi-empty-tip {
+    font-size: 0.9rem !important;
+    color: var(--highlight-color);
 }
