@@ -2,12 +2,12 @@
 :root {
     --primary-color: #00ff95;
     --secondary-color: #00b8ff;
-    --background-color: #282828;
+    --background-color: rgba(40, 40, 40, 0.95);
     --text-color: #ffffff;
     --highlight-color: #ffd700;
     --border-color: #4a5662;
-    --input-bg-color: #455844;
-    --input-focus-bg-color: #4c614a;
+    --input-bg-color: rgba(69, 88, 68, 0.8);
+    --input-focus-bg-color: rgba(76, 97, 74, 0.9);
     --disabled-bg-color: #2d2d2d;
     --disabled-text-color: #666;
 }
@@ -29,6 +29,9 @@ body {
     display: flex;
     flex-direction: column;
     font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 /* 容器样式 */
@@ -69,6 +72,7 @@ body {
     margin-bottom: 1rem;
     flex-direction: column;
     gap: 0.4rem;
+    height: auto;
 }
 
 .content-container.active {
@@ -86,6 +90,7 @@ body {
     top: 0;
     z-index: 100;
     margin-bottom: 0.5rem;
+    background-color: var(--background-color);
 }
 
 .nav-item {
@@ -358,15 +363,14 @@ input[type="button"]:active {
 
 #autoSwitchStatus {
     flex: 1;
-    overflow-x: auto;
     overflow-y: auto;
+    overflow-x: auto;
     white-space: pre;
-    word-wrap: normal;
     color: var(--highlight-color);
     font-size: 0.95rem;
     line-height: 1.5;
     margin: 0;
-    padding-right: 0.5rem;
+    padding: 0.5rem;
 }
 
 #successMessage {
@@ -500,6 +504,9 @@ h2::after {
     justify-content: center;
     align-items: center;
     z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: fadeIn 0.3s ease forwards;
 }
 
 .dialog.hidden {
@@ -512,6 +519,9 @@ h2::after {
     border-radius: 16px;
     width: 90%;
     max-width: 400px;
+    transform: scale(0.8);
+    opacity: 0;
+    animation: scaleIn 0.3s ease forwards;
 }
 
 .dialog-content h3 {
@@ -562,10 +572,14 @@ h2::after {
 
 .dialog-buttons button.primary {
     background: #5b6b99;
+    position: relative;
+    overflow: hidden;
+    animation: pulsePrimary 2s infinite;
 }
 
 .dialog-buttons button.primary:hover {
     background: #6b7db3;
+    animation: none; /* 悬停时停止闪烁 */
 }
 
 .dialog-buttons button.primary:active {
@@ -699,7 +713,7 @@ h2::after {
     background: rgba(255, 77, 79, 0.1);
 }
 
-/* 添加密码字段的样式 */
+/* 添加密码字段的 */
 .password-field {
     cursor: pointer;
     user-select: none;
@@ -784,36 +798,35 @@ h2::after {
 /* 修改状态文本区域样式 */
 #autoSwitchStatus {
     flex: 1;
-    overflow-x: auto;
     overflow-y: auto;
+    overflow-x: auto;
     white-space: pre;
-    word-wrap: normal;
     color: var(--highlight-color);
     font-size: 0.95rem;
     line-height: 1.5;
     margin: 0;
-    padding-right: 0.5rem;
+    padding: 0.5rem;
 }
 
 /* 自定义滚动条样式 */
 #autoSwitchStatus::-webkit-scrollbar {
-    width: 10px; /* 增加滚动条宽度 */
-    height: 10px; /* 增加水平滚动条高度 */
+    width: 8px;
+    height: 8px;
 }
 
 #autoSwitchStatus::-webkit-scrollbar-track {
-    background: #222; /* 滚动条轨道背景色 */
-    border-radius: 5px; /* 圆角 */
+    background: #222;
+    border-radius: 4px;
 }
 
 #autoSwitchStatus::-webkit-scrollbar-thumb {
-    background: #4a5d75; /* 使用按钮的背景颜色 */
-    border-radius: 5px; /* 圆角 */
-    border: 2px solid #333; /* 增加边框以突出滚动条 */
+    background: #4a5d75;
+    border-radius: 4px;
+    border: 2px solid #333;
 }
 
 #autoSwitchStatus::-webkit-scrollbar-thumb:hover {
-    background: #576d89; /* 悬停时使用按钮悬停时的颜色 */
+    background: #576d89;
 }
 
 /* 自定义 WiFi 列表滚动条样式 */
@@ -871,7 +884,7 @@ h2::after {
     background: #576d89;
 }
 
-/* WiFi选择列表样式 */
+/* WiFi选列表样式 */
 .wifi-select-list {
     background: #333;
     border-radius: 12px;
@@ -953,4 +966,400 @@ h2::after {
 .wifi-empty-tip {
     font-size: 0.9rem !important;
     color: var(--highlight-color);
+}
+
+/* 添加淡入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 添加缩放动画 */
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 添加关闭动画 */
+.dialog.closing {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+.dialog.closing .dialog-content {
+    animation: scaleOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes scaleOut {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* 添加 Toast 提示框样式 */
+.toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px 24px;
+    background: rgba(255, 77, 79, 0.9);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    max-width: 80%;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.toast.success {
+    background: rgba(0, 255, 149, 0.9);
+}
+
+.toast.error {
+    background: rgba(255, 77, 79, 0.9);
+}
+
+/* 添加淡入淡出动画 */
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+}
+
+/* 删除确认弹窗样式 */
+.delete-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #444;
+}
+
+.delete-icon {
+    font-size: 2rem;
+    animation: warningShake 1.5s ease-in-out infinite;
+}
+
+/* 添加警告图标晃动动画 */
+@keyframes warningShake {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: rotate(-8deg);
+    }
+    20%, 40%, 60%, 80% {
+        transform: rotate(8deg);
+    }
+}
+
+.delete-header h3 {
+    margin: 0;
+    color: #ff6b6b;
+}
+
+.highlight-text {
+    color: var(--highlight-color);
+    font-weight: 500;
+}
+
+.warning-text {
+    color: #ff6b6b;
+    font-size: 0.9rem;
+}
+
+.delete-buttons {
+    margin-top: 1.5rem;
+}
+
+.delete-buttons button.warning {
+    background: #ff6b6b;
+    position: relative;
+    overflow: hidden;
+    animation: pulseWarning 2s infinite;
+}
+
+.delete-buttons button.warning:hover {
+    background: #ff8585;
+    animation: none; /* 悬停时停止闪烁 */
+}
+
+.delete-buttons button.warning:active {
+    background: #ff5252;
+}
+
+/* 删除按钮的脉冲动画 */
+@keyframes pulseWarning {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+}
+
+/* 主要按钮的脉冲动画 */
+@keyframes pulsePrimary {
+    0% {
+        box-shadow: 0 0 0 0 rgba(91, 107, 153, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(91, 107, 153, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(91, 107, 153, 0);
+    }
+}
+
+/* 1. 添加硬件加速，提高动画性能 */
+.nav-item,
+.dialog-content,
+button,
+input[type="button"],
+.wifi-item,
+.click-emoji {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* 2. 优化动画性能，使用transform替代left/top */
+@keyframes emojiFloat {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -100%) scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -150%) scale(1);
+        opacity: 0;
+    }
+}
+
+/* 3. 优化滚动性能 */
+.wifi-list,
+#autoSwitchStatus,
+.status-container {
+    -webkit-overflow-scrolling: touch; /* 增加iOS滚动流畅度 */
+    scroll-behavior: smooth; /* 平滑滚动 */
+}
+
+/* 4. 添加过渡效果，提升交互体验 */
+.info-item,
+.wifi-item,
+.nav-item,
+button,
+input[type="button"],
+input[type="text"],
+input[type="password"],
+select {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 5. 优化hover和active状态的响应速度 */
+.nav-item:hover,
+button:hover,
+input[type="button"]:hover {
+    transition-duration: 0.1s;
+}
+
+/* 6. 优化加载动画性能 */
+.loading-spinner .spinner {
+    will-change: transform;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 7. 优化弹窗动画 */
+.dialog {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    will-change: opacity;
+}
+
+.dialog-content {
+    will-change: transform, opacity;
+}
+
+/* 8. 添加触摸反馈 */
+@media (hover: hover) {
+    .wifi-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .info-item:hover {
+        transform: translateX(4px);
+    }
+}
+
+/* 9. 优化移动端点击区域 */
+.nav-item,
+button,
+input[type="button"],
+.wifi-item label {
+    min-height: 44px; /* 确保足够的点击区域 */
+}
+
+/* 10. 减少重绘和回流 */
+.main-container,
+.content-container,
+.nav-bar {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* 11. 优化字体渲染 */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* 12. 优化加载状态显示 */
+.loading-spinner {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+/* 13. 优化Toast提示动画 */
+.toast {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+/* 14. 优化按钮点击反馈 */
+button:active,
+input[type="button"]:active {
+    transform: scale(0.98) translateZ(0);
+    transition-duration: 0.1s;
+}
+
+/* 15. 优化表单控件焦点状态 */
+input:focus,
+select:focus {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 0 2px rgba(0, 255, 149, 0.2);
+}
+
+/* 16. 优化滚动条样式和性能 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(74, 93, 117, 0.5);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 93, 117, 0.8);
+}
+
+/* 17. 优化移动端表单体验 */
+@media (max-width: 480px) {
+    input[type="text"],
+    input[type="password"],
+    select {
+        font-size: 16px; /* 防止iOS自动缩放 */
+    }
+    
+    .button-group {
+        gap: 0.5rem; /* 减小按钮间距 */
+    }
+}
+
+/* 18. 优化暗色主题对比度 */
+:root {
+    --primary-color: #00ff95;
+    --secondary-color: #00b8ff;
+    --background-color: rgba(40, 40, 40, 0.95);
+    --input-bg-color: rgba(69, 88, 68, 0.8);
+    --input-focus-bg-color: rgba(76, 97, 74, 0.9);
+}
+
+/* 优化状态容器样式 */
+.status-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #333;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    overflow: hidden;  /* 防止内容溢出 */
+    min-height: 0;
+}
+
+/* 优化移动端显示 */
+@media (max-width: 480px) {
+    #autoSwitchStatus {
+        font-size: 0.9rem;  /* 移动端稍微缩小字体 */
+        padding: 0.4rem;    /* 减小内边距 */
+    }
 }

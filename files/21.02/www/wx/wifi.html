@@ -75,10 +75,10 @@
         <div class="content-container" id="configContainer">
             <h2>热点切换配置</h2>
             <div class="input-group">
-                <label for="wifiNameSelect">已知热点</label>
-                <select id="wifiNameSelect">
-                    <option value="">手动输入</option>
-                </select>
+                <label>已知热点</label>
+                <button type="button" class="wifi-select-button" onclick="showWiFiSelectDialog()">
+                    选择已知热点 <span class="nav-icon">📡</span>
+                </button>
             </div>
             <div class="input-group">
                 <label for="wifiNameInput">WiFi名称</label>
@@ -216,6 +216,47 @@
     <div id="loadingSpinner" class="loading-spinner hidden">
         <div class="spinner"></div>
         <div class="loading-text">处理中...</div>
+    </div>
+
+    <!-- 在 body 末尾添加已知热点选择弹窗 -->
+    <div id="wifiSelectDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3>选择已知热点</h3>
+            <div class="wifi-select-list">
+                <div class="wifi-empty-state">
+                    <span class="nav-icon">📡</span>
+                    <p>暂无已知热点</p>
+                    <p class="wifi-empty-tip">请先 "手动输入" 添加数据</p>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <button onclick="closeWiFiSelectDialog()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加删除确认弹窗 -->
+    <div id="deleteConfirmDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <div class="delete-header">
+                <span class="delete-icon">⚠️</span>
+                <h3>删除确认</h3>
+            </div>
+            <div class="confirm-content">
+                <div class="confirm-item">
+                    <label>选中数量：</label>
+                    <span id="deleteCount" class="highlight-text"></span>
+                </div>
+                <div class="confirm-item">
+                    <label>注意事项：</label>
+                    <span class="warning-text">此操作将不可恢复</span>
+                </div>
+            </div>
+            <div class="dialog-buttons delete-buttons">
+                <button onclick="closeDeleteConfirmDialog()">取消</button>
+                <button onclick="confirmDelete()" class="warning">删除</button>
+            </div>
+        </div>
     </div>
 </body>
 </html>
