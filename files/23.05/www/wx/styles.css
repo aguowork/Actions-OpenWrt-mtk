@@ -1,329 +1,1697 @@
-/* 全局样式 */
+/* 定义常用颜色变量 */
+:root {
+    --primary-color: #00ff95;
+    --secondary-color: #00b8ff;
+    --background-color: #282828;
+    --text-color: #ffffff;
+    --highlight-color: #ffd700;
+    --border-color: #4a5662;
+    --input-bg-color: #455844;
+    --input-focus-bg-color: #4c614a;
+    --disabled-bg-color: #2d2d2d;
+    --disabled-text-color: #666;
+}
+
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
-    font-family: 'Helvetica Neue', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     background-color: #181818;
-    color: #ffffff;
-    margin: 0;
-    padding: 20px;
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    font-size: 16px;
 }
 
-/* 容器通用样式 */
-.container {
-    background-color: #282828;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 30px;
+/* 容器样式 */
+#loginContainer, .main-container, .content-container {
+    background: var(--background-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#loginContainer {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 1.5rem;
     width: 90%;
-    max-width: 600px;
-    margin: 10px 0;
+    max-width: 400px;
+    text-align: center;
+    z-index: 2000;
+}
+
+#loginContainer input[type="password"] {
+    margin-bottom: 0.4rem;
+}
+
+.main-container {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.content-container {
+    display: none;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: unset;
+    height: auto;
+}
+
+.content-container.active {
+    display: flex;
+}
+
+/* 导航栏样式 */
+.nav-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin-bottom: 0.5rem;
+    background-color: var(--background-color);
+}
+
+.nav-item {
     display: flex;
     flex-direction: column;
-}
-
-/* 标题样式 */
-h2 {
-    color: #00ff95;
-    margin-bottom: 15px;
-}
-
-/* 段落和标签样式 */
-p, label {
-    color: #ffd700;
-    margin: 0;
-}
-
-/* 输入框、选择框、按钮通用样式 */
-input[type="text"], input[type="password"], select, button, input[type="button"] {
-    padding: 10px;
-    margin-top: 0;
-    border: none;
-    border-radius: 8px;
-    background-color: #333;
-    color: white;
-    width: 100%;
-    box-sizing: border-box;
-    transition: background-color 0.3s;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem;
     cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    flex: 1;
+    text-align: center;
+    min-height: 72px;
+    white-space: nowrap;
 }
 
-/* 自定义下拉选择框样式 */
+.nav-item.active {
+    background: #3a3a3a;
+    color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+.nav-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+    font-style: normal;
+}
+
+/* 信息网格布局 */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+}
+
+.info-item {
+    background: #333;
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.info-item label {
+    color: var(--highlight-color);
+    font-size: 0.95rem;
+    min-width: 4em;
+    flex-shrink: 0;
+}
+
+.info-item span {
+    flex: 1;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* 输入组样式 */
+.input-group {
+    margin-bottom: 0.2rem;
+}
+
+.input-group label {
+    display: block;
+    color: var(--highlight-color);
+    margin-bottom: 0.15rem;
+    font-size: 0.95rem;
+}
+
+/* 输入框和选择框样式 */
+input[type="text"],
+input[type="password"],
+input[type="number"],
 select {
-    appearance: none;
-    background-color: #333;
-    color: #fff;
-    padding: 10px;
-    margin-top: 0;
-    border: none;
-    border-radius: 8px;
     width: 100%;
-    box-sizing: border-box;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23ffd700' d='M2 5L0 2h4L2 5z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 10px;
-}
-
-/* 按钮默认样式 */
-button, input[type="button"] {
-    padding: 10px 15px;
-    background-color: #45a049;
-    color: white;
-    border: none;
+    height: 40px;
+    padding: 0 1rem;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
+    background: var(--input-bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    appearance: none;
+    margin: 0;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(0, 255, 149, 0.5);
+    outline: none;
+}
+
+input::placeholder {
+    color: #aaa;
+}
+
+input:disabled,
+select:disabled {
+    background: var(--disabled-bg-color);
+    color: var(--disabled-text-color);
+    cursor: not-allowed;
+    border-color: var(--border-color);
+}
+
+/* 按钮样式 */
+button, 
+input[type="button"] {
+    background: #4a5d75;
+    color: #ffffff;
+    border: none;
+    height: 48px;
+    padding: 0 1.5rem;
+    border-radius: 12px;
     cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s;
+    font-weight: bold;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: visible;
+    margin-top: 0.3rem;
 }
 
-/* 按钮悬停样式 */
-button:hover, input[type="button"]:hover {
-    background-color: #3e8e41;
+button:hover,
+input[type="button"]:hover {
+    background: #576d89;
 }
 
-/* 隐藏类 */
-.hidden {
-    display: none;
+button:active,
+input[type="button"]:active {
+    transform: scale(0.98);
+    background: #3d4d61;
 }
 
-/* 管理界面专用样式 */
-#manageContainer {
-    align-items: flex-start;
-}
-
-/* 增大复选框尺寸，并调整与文本的间距 */
-#manageContainer input[type="checkbox"] {
-    margin-right: 10px;
-    margin-bottom: 10px;
-    transform: scale(1.5);
-}
-
-#manageContainer label {
-    font-size: 1.2em;
-}
-
-/* 按钮组样式 */
 .button-group {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
+    gap: 0.8rem;
+    flex-direction: row;
 }
 
 .button-group button {
-    flex-grow: 1;
-    margin-right: 5px;
-}
-
-.button-group button:last-child {
-    margin-right: 0;
-}
-
-/* 新的输入组样式 */
-.input-group {
-    display: flex;
-    flex-direction: column;
-    margin-top: 12px;
-}
-
-/* 为当前中继热点的描述部分增加间距 */
-.current-info p {
-    margin: 10px 0;
-}
-
-/* 美化后的配置成功页面样式 */
-#successMessage.success-wrapper {
-    background-color: rgba(40, 40, 40, 0.9);
-    border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-    padding: 40px;
-    width: 80%;
-    max-width: 700px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#successMessage.success-wrapper h2 {
-    color: #00ff95;
-    margin-bottom: 30px;
-    font-size: 2em;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-#successMessage.success-wrapper.success-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-#successMessage.success-wrapper.success-content p {
-    color: #ffd700;
-    margin: 15px 0;
-    font-size: 1.4em;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-#successMessage.success-wrapper.success-note {
-    color: #ffd700;
-    font-size: 16px;
-    margin-top: 20px;
-    text-align: center;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-#successMessage.success-wrapper button {
-    padding: 15px 30px;
-    background-color: #45a049;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    margin-top: 30px;
-    transition: background-color 0.3s;
-    font-size: 1.2em;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-#successMessage.success-wrapper button:hover {
-    background-color: #3e8e41;
-}
-
-/* 自动切换状态容器样式 */
-#autoSwitchPage {
-    background-color: #282828;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    width: 100%;
-    max-width: 600px;
-    margin: 10px auto; /* 居中显示 */
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    box-sizing: border-box; /* 确保padding不会影响宽度 */
-    transition: all 0.3s ease; /* 过渡效果 */
-}
-
-/* 自动切换状态容器样式 */
-#autoSwitchStatusContainer {
-    background-color: #282828;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 10px;
-    width: 100%; /* 让宽度自适应父元素 */
-    max-width: 600px;
-    margin: 20px 0; /* 上下间距 */
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-}
-
-/* 输出框样式 */
-#autoSwitchStatus {
-    color: #ffd700;
-    font-family: 'Helvetica Neue', sans-serif;
-    white-space: pre-wrap;
-    flex-grow: 1;
-    min-height: 40px; /* 与按钮高度一致 */
-    max-height: 300px;
-    margin-bottom: 10px; /* 与下面的按钮有一定间距 */
-    overflow: auto; /* 让内容溢出时可以滚动 */
-    transition: all 0.2s ease-in-out; /* 平滑的高度过渡 */
-}
-
-/* 按钮组样式 */
-.button-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-}
-
-/* 自动切换页面中的按钮 */
-#startAutoSwitchButton, #returnToConfigButton, #autoSwitchTimerButton {
-    height: 40px;
-    width: auto;
+    flex: 1;
     min-width: 120px;
-    max-width: 200px;
-    background-color: #ffd700;
-    color: #282828;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    padding: 10px;
-    box-sizing: border-box;
-    flex-shrink: 1;
-    flex-grow: 0;
+    width: auto;
 }
 
-/* 只针对 #autoSwitchTimerButton 修改颜色 */
-#autoSwitchTimerButton {
-    background-color: #007bff;  /* 改成蓝色背景 */
-    color: #ffffff;  /* 按钮文字改为白色 */
-}
-
-/* 只针对 #returnToConfigButton 修改颜色 */
-#returnToConfigButton {
-    background-color: #28a745;  /* 设置为绿色背景 */
-    color: #ffffff;  /* 按钮文字改为白色 */
-}
-
-/* 按钮悬停效果 */
-#startAutoSwitchButton:hover, #returnToConfigButton:hover, #autoSwitchTimerButton:hover {
-    background-color: #e5c100;
-    transform: translateY(-2px);
-}
-
-/* 只针对 #autoSwitchTimerButton 修改悬停颜色 */
-#autoSwitchTimerButton:hover {
-    background-color: #0056b3;  /* 悬停时深蓝色 */
-    transform: translateY(-2px);
-}
-
-/* 只针对 #returnToConfigButton 修改悬停颜色 */
-#returnToConfigButton:hover {
-    background-color: #218838;  /* 悬停时深绿色 */
-    transform: translateY(-2px);
-}
-
-/* 按钮点击效果 */
-#startAutoSwitchButton:active, #returnToConfigButton:active, #autoSwitchTimerButton:active {
-    background-color: #c8a100;
-    transform: translateY(1px);
-}
-
-/* 只针对 #autoSwitchTimerButton 修改点击颜色 */
-#autoSwitchTimerButton:active {
-    background-color: #004085;  /* 点击时更深的蓝色 */
-    transform: translateY(1px);
-}
-
-/* 只针对 #returnToConfigButton 修改点击颜色 */
-#returnToConfigButton:active {
-    background-color: #1e7e34;  /* 点击时更深的绿色 */
-    transform: translateY(1px);
-}
-
-/* 小屏设备下，按钮宽度100% */
-@media (max-width: 600px) {
+@media (max-width: 480px) {
     .button-group {
-        justify-content: center;
+        flex-direction: row;
+    }
+    
+    #saveButton,
+    #manageContainer .button-group button {
+        width: 100%;
+        margin-top: 0.3rem;
+    }
+    
+    #autoSwitchPage .button-group {
+        flex-direction: row;
+    }
+    
+    #autoSwitchPage .button-group button {
+        font-size: 0.9rem;
+        padding: 0 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    #saveButton,
+    #manageContainer .button-group button {
+        width: 100%;
+    }
+}
+
+/* WiFi列表样式 */
+.wifi-list {
+    background: #333;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+
+.wifi-item {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem;
+    border-bottom: 1px solid #444;
+    min-height: 48px;
+}
+
+.wifi-item:last-child {
+    border-bottom: none;
+}
+
+.wifi-item:active {
+    background-color: #3a3a3a;
+}
+
+.wifi-item label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+    margin-left: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.wifi-name {
+    color: #fff;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-right: 0.5rem;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.wifi-details {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.wifi-band {
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    padding: 0.2rem 0.4rem;
+    background: rgba(0, 255, 149, 0.1);
+    border-radius: 4px;
+}
+
+.wifi-password {
+    color: var(--highlight-color);
+    font-size: 0.85rem;
+    padding: 0.2rem 0.4rem;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 4px;
+}
+
+.wifi-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .wifi-item {
+        padding: 0.6rem;
     }
 
-    #startAutoSwitchButton, #returnToConfigButton, #autoSwitchTimerButton {
-        width: 100%;
-        min-width: 0;
-        margin-bottom: 10px;
+    .wifi-item label {
+        margin-left: 0.6rem;
     }
+
+    .wifi-name {
+        font-size: 0.9rem;
+    }
+
+    .wifi-details {
+        gap: 0.4rem;
+    }
+}
+
+.status-container {
+    background: #333;
+    padding: 1rem;
+    border-radius: 12px;
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 0.4rem;
+    min-height: 0;
+}
+
+#autoSwitchStatus {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    white-space: pre;
+    word-wrap: normal;
+    color: var(--highlight-color);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    padding-right: 0.5rem;
+}
+
+#successMessage {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    z-index: 1000;
+}
+
+.success-wrapper {
+    background: var(--background-color);
+    padding: 1.5rem;
+    border-radius: 16px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.success-content {
+    margin: 1.5rem 0;
+}
+
+.success-note {
+    color: var(--highlight-color);
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+h2 {
+    color: transparent;
+    background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--primary-color) 100%);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    padding: 0.3rem 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    text-shadow: 0 0 20px rgba(0, 255, 149, 0.2);
+    animation: gradientMove 3s ease infinite;
+}
+
+h2 .subtitle {
+    font-size: 1rem;
+    color: #666;
+    font-weight: normal;
+    margin-left: 0.5rem;
+    -webkit-text-fill-color: #666;
+    text-shadow: none;
+    opacity: 0.8;
+}
+
+h2::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        var(--primary-color) 20%,
+        var(--primary-color) 80%,
+        transparent 100%
+    );
+    animation: float 2s ease-in-out infinite;
+}
+
+h2::after {
+    display: none;
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    50% { 
+        transform: translateY(-2px);
+        opacity: 1;
+    }
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@media (max-width: 480px) {
+    h2 {
+        font-size: 1.2rem;
+        padding: 0.4rem 0;
+    }
+}
+
+.dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.dialog.hidden {
+    display: none;
+}
+
+.dialog-content {
+    background: var(--background-color);
+    padding: 1.5rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    transform: scale(0.8);
+    opacity: 0;
+    animation: scaleIn 0.3s ease forwards;
+}
+
+.dialog-content h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.dialog-desc {
+    color: var(--highlight-color);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.dialog-tip {
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+    margin-top: 0.8rem;
+    padding: 0.5rem;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.dialog input[type="number"] {
+    width: 100%;
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    border-radius: 12px;
+    background: #333;
+    color: white;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.dialog-buttons button {
+    flex: 1;
+    height: 44px;
+}
+
+.dialog-buttons button.primary {
+    background: #5b6b99;
+    position: relative;
+    overflow: hidden;
+    animation: pulsePrimary 2s infinite;
+}
+
+.dialog-buttons button.primary:hover {
+    background: #6b7db3;
+    animation: none; /* 悬停时停闪烁 */
+}
+
+.dialog-buttons button.primary:active {
+    background: #4d5a82;
+}
+
+.dialog-buttons button:not(.primary) {
+    background: #4e4e4e;
+}
+
+.dialog-buttons button:not(.primary):hover {
+    background: #5a5a5a;
+}
+
+.dialog-buttons button:not(.primary):active {
+    background: #424242;
+}
+
+.confirm-content {
+    background: #333;
+    padding: 1rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+}
+
+.confirm-item {
+    display: flex;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #444;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.confirm-item:last-child {
+    border-bottom: none;
+}
+
+.confirm-item label {
+    color: var(--highlight-color);
+    min-width: 6em;
+    font-size: 0.9rem;
+}
+
+.confirm-item span {
+    color: #fff;
+    flex: 1;
+    text-align: right;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.dialog-tips {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+#successDialog .dialog-tip {
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+#successDialog .dialog-buttons {
+    justify-content: center;
+}
+
+#successDialog .dialog-buttons button {
+    min-width: 120px;
+}
+
+#configContainer .input-group:not(:last-child) {
+    margin-bottom: 0.2rem;
+}
+
+#configContainer .input-group:last-of-type {
+    margin-bottom: 0.4rem;
+}
+
+#passwordContainer {
+    margin-bottom: 0.2rem;
+}
+
+#configContainer h2 {
+    margin-bottom: 0.4rem;
+}
+
+.click-emoji {
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.8rem;
+    user-select: none;
+    z-index: 9999;
+    animation: emojiFloat 1.5s ease-out forwards;
+}
+
+@keyframes emojiFloat {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -100%) scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -150%) scale(1);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .dialog-tip {
+        font-size: 0.85rem;
+        padding: 0.4rem;
+    }
+}
+
+/* 状态和网络的绿色样式 */
+.status-tag {
+    display: inline-block;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-connected {
+    color: var(--primary-color);
+    background: rgba(0, 255, 149, 0.1);
+}
+
+.status-disconnected {
+    color: #ff4d4f;
+    background: rgba(255, 77, 79, 0.1);
+}
+
+/* 添加密码字段的 */
+.password-field {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+.password-field:hover {
+    opacity: 0.8;
+}
+
+.password-field:active {
+    transform: scale(0.98);
+}
+
+/* 添加加载动画样式 */
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner.hidden {
+    display: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--primary-color);
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    color: var(--primary-color);
+    margin-top: 1rem;
+    font-size: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 修改自动切换页面的容器样式 */
+#autoSwitchPage.content-container {
+    display: none;
+    flex-direction: column;
+    height: calc(100vh - 180px);
+    max-height: calc(100vh - 180px);
+    overflow: hidden;
+    padding: 0.8rem;
+    gap: 0.4rem;
+}
+
+#autoSwitchPage.content-container.active {
+    display: flex;
+}
+
+/* 修改状态容器样式 */
+#autoSwitchPage .status-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+    padding: 0.5rem;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    min-height: 0;
+    border: 1px solid rgba(74, 86, 98, 0.2);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* 修改滚动条交界处的样式，匹配新的背景色 */
+#autoSwitchStatus::-webkit-scrollbar-corner {
+    background: #2a2a2a;
+}
+
+/* 修改状态文本域样式 */
+#autoSwitchStatus {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    white-space: pre;
+    word-wrap: normal;
+    color: #b3b3b3;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0.3rem;
+    font-family: 'Consolas', monospace;
+}
+
+/* 自定义滚动��样式 */
+#autoSwitchStatus::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+#autoSwitchStatus::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 5px;
+}
+
+#autoSwitchStatus::-webkit-scrollbar-thumb {
+    background: #4a5d75;
+    border-radius: 5px;
+    border: 2px solid #333;
+}
+
+#autoSwitchStatus::-webkit-scrollbar-thumb:hover {
+    background: #576d89;
+}
+
+/* 自定义 WiFi 列表滚动条样式 */
+.wifi-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.wifi-list::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 5px;
+}
+
+.wifi-list::-webkit-scrollbar-thumb {
+    background: #4a5d75;
+    border-radius: 5px;
+    border: 2px solid #333;
+}
+
+.wifi-list::-webkit-scrollbar-thumb:hover {
+    background: #576d89;
+}
+
+.auto-switch-tip {
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: opacity 0.5s ease-in-out;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* 添加WiFi选择按钮样式 */
+.wifi-select-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #4a5d75;
+    color: #ffffff;
+    border: none;
+    height: 48px;
+    padding: 0 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.wifi-select-button:hover {
+    background: #576d89;
+}
+
+/* WiFi选列表样式 */
+.wifi-select-list {
+    background: #333;
+    border-radius: 12px;
+    margin: 1rem 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.wifi-select-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #444;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.wifi-select-item:last-child {
+    border-bottom: none;
+}
+
+.wifi-select-item:hover {
+    background-color: #3a3a3a;
+}
+
+.wifi-select-name {
+    color: #fff;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.wifi-select-details {
+    display: flex;
+    gap: 0.8rem;
+}
+
+/* 自定义滚动条样式 */
+.wifi-select-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.wifi-select-list::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 5px;
+}
+
+.wifi-select-list::-webkit-scrollbar-thumb {
+    background: #4a5d75;
+    border-radius: 5px;
+    border: 2px solid #333;
+}
+
+.wifi-select-list::-webkit-scrollbar-thumb:hover {
+    background: #576d89;
+}
+
+/* 添加空状态样式 */
+.wifi-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #888;
+}
+
+.wifi-empty-state .nav-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.wifi-empty-state p {
+    margin: 0.3rem 0;
+    font-size: 1rem;
+}
+
+.wifi-empty-tip {
+    font-size: 0.9rem !important;
+    color: var(--highlight-color);
+}
+
+/* 添加淡入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 添加缩放动画 */
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 添加关闭动画 */
+.dialog.closing {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+.dialog.closing .dialog-content {
+    animation: scaleOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes scaleOut {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* 添加 Toast 提示框样式 */
+.toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px 24px;
+    background: rgba(255, 77, 79, 0.9);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    max-width: 80%;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.toast.success {
+    background: rgba(0, 255, 149, 0.9);
+}
+
+.toast.error {
+    background: rgba(255, 77, 79, 0.9);
+}
+
+/* 添加淡入淡出动画 */
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+}
+
+/* 删除确认弹窗样式 */
+.delete-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #444;
+}
+
+.delete-icon {
+    font-size: 2rem;
+    animation: warningShake 1.5s ease-in-out infinite;
+}
+
+/* 添加警告图标晃动动画 */
+@keyframes warningShake {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: rotate(-8deg);
+    }
+    20%, 40%, 60%, 80% {
+        transform: rotate(8deg);
+    }
+}
+
+.delete-header h3 {
+    margin: 0;
+    color: #ff6b6b;
+}
+
+.highlight-text {
+    color: var(--highlight-color);
+    font-weight: 500;
+}
+
+.warning-text {
+    color: #ff6b6b;
+    font-size: 0.9rem;
+}
+
+.delete-buttons {
+    margin-top: 1.5rem;
+}
+
+.delete-buttons button.warning {
+    background: #ff6b6b;
+    position: relative;
+    overflow: hidden;
+    animation: pulseWarning 2s infinite;
+}
+
+.delete-buttons button.warning:hover {
+    background: #ff8585;
+    animation: none; /* 悬停时停止闪烁 */
+}
+
+.delete-buttons button.warning:active {
+    background: #ff5252;
+}
+
+/* 删除按钮的脉冲动画 */
+@keyframes pulseWarning {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+}
+
+/* 主要按钮的脉冲动画 */
+@keyframes pulsePrimary {
+    0% {
+        box-shadow: 0 0 0 0 rgba(91, 107, 153, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(91, 107, 153, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(91, 107, 153, 0);
+    }
+}
+
+/* 添加日志行样式 */
+.log-line {
+    padding: 0.15rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    animation: fadeInLog 0.3s ease-out;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.log-line:last-child {
+    border-bottom: none;
+}
+
+/* 不同类型日志的样式 */
+.log-info {
+    color: #b3b3b3;
+}
+
+.log-success {
+    color: var(--primary-color);
+}
+
+.log-error {
+    color: #ff6b6b;
+}
+
+.log-warning {
+    color: var(--highlight-color);
+}
+
+/* 添加日志动画 */
+@keyframes fadeInLog {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 修改原计数器样式为复制按钮样式 */
+.log-counter {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    background: rgba(74, 93, 117, 0.5);  /* 使用按钮风格的背景色 */
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: #fff;  /* 改为白色文字 */
+    z-index: 1;
+    cursor: pointer;  /* 添加鼠标针样式 */
+    transition: all 0.3s ease;  /* 添加过渡效果 */
+}
+
+.log-counter:hover {
+    background: rgba(74, 93, 117, 0.8);
+}
+
+.log-counter:active {
+    transform: scale(0.95);
+}
+
+/* 移除清除按钮相关样式 */
+.clear-log-button {
+    display: none;
+}
+
+/* 移除时间戳样式 */
+.log-timestamp {
+    display: none;
+}
+
+/* 调整日志行样式 */
+.log-line {
+    padding: 0.15rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    animation: fadeInLog 0.3s ease-out;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* WiFi列表控制按钮样式 */
+.wifi-list-controls {
+    position: absolute;  /* 绝对定位 */
+    right: 1.9rem;        /* 增加右边距到2rem，让按钮再往左移动一点 */
+    top: 50%;          /* 垂直居中 */
+    transform: translateY(-50%);  /* 精确垂直居中 */
+    display: flex;
+    gap: 0.5rem;
+    z-index: 1;        /* 确保按钮在上层 */
+}
+
+.select-all, .select-inverse {
+    background: rgba(74, 93, 117, 0.5);
+    color: #fff;
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.select-all:hover, .select-inverse:hover {
+    background: rgba(74, 93, 117, 0.8);
+}
+
+.select-all:active, .select-inverse:active {
+    transform: scale(0.95);
+}
+
+/* 管理界面标题栏样式 */
+.manage-header {
+    position: relative;  /* 改为对定位 */
+    margin-bottom: 0.4rem;
+}
+
+.manage-header h2 {
+    margin: 0;
+    width: 100%;  /* 确保标题占满宽度 */
+}
+
+/* WiFi列表控制按钮样式 */
+.wifi-list-controls {
+    position: absolute;  /* 绝对定位 */
+    right: 1.9rem;        /* 增加右边距到2rem，让按钮再往左移动一点 */
+    top: 50%;          /* 垂直居中 */
+    transform: translateY(-50%);  /* 精确垂直居中 */
+    display: flex;
+    gap: 0.5rem;
+    z-index: 1;        /* 确保按钮在上层 */
+}
+
+.select-all, .select-inverse {
+    display: inline-block;  /* 修改为行内块元素 */
+    background: rgba(74, 93, 117, 0.5);
+    color: #fff;
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;  /* 防止文字换行 */
+}
+
+.select-all:hover, .select-inverse:hover {
+    background: rgba(74, 93, 117, 0.8);
+}
+
+.select-all:active, .select-inverse:active {
+    transform: scale(0.95);
+}
+
+/* 确保标题的渐变线条效果不受影响 */
+.manage-header h2::before {
+    width: 100%;  /* 确保线条占满宽度 */
+    z-index: 0;   /* 确保线条在底层 */
+}
+
+/* 添加媒体查询，在小屏幕下调整导航项样式 */
+@media (max-width: 480px) {
+    .nav-item {
+        padding: 0.4rem;  /* 更小的内边距 */
+        font-size: 0.9rem;  /* 稍微减小字体小 */
+    }
+    
+    .nav-icon {
+        font-size: 1.3rem;  /* 减小图标大小 */
+        margin-bottom: 0.1rem;  /* 减小图标和文字的间距 */
+    }
+}
+
+/* 无线设置样式 */
+.wireless-section {
+    background: rgba(51, 51, 51, 0.5);  /* 改为半透明背景 */
+    padding: 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(74, 86, 98, 0.2);
+    transition: all 0.3s ease;
+}
+
+.wireless-section h3 {
+    color: var(--primary-color);
+    margin-bottom: 1.2rem;
+    font-size: 1.1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(74, 86, 98, 0.2);
+    position: relative;
+}
+
+.wireless-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+#settings2g, #settings5g {
+    transition: all 0.3s ease;
+    opacity: 1;
+    max-height: 500px;
+    overflow: hidden;
+}
+
+#settings2g.hidden,
+#settings5g.hidden {
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .wireless-section {
+        padding: 0.8rem;
+    }
+    
+    .wireless-section h3 {
+        font-size: 1rem;
+    }
+}
+
+/* 无线设置页面特殊样式 */
+#wirelessContainer {
+    --status-active-bg: rgba(91, 107, 153, 0.3);
+    --status-disabled-bg: rgba(45, 45, 45, 0.5);
+    --input-hover-bg: rgba(69, 88, 68, 0.4);
+}
+
+/* 输入组样式优化 */
+#wirelessContainer .input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+    position: relative;
+    transition: opacity 0.3s ease;
+}
+
+/* 标签样式优化 */
+#wirelessContainer .input-group label {
+    min-width: 3em;
+    width: 3em;
+    margin: 0;
+    flex-shrink: 0;
+    text-align: left;
+    color: var(--highlight-color);
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+/* 状态选择框样式优化 */
+#wirelessContainer #status2g,
+#wirelessContainer #status5g {
+    background: var(--status-active-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ff95' d='M2 4l4 4 4-4' stroke='%2300ff95' stroke-width='1'/%3E%3C/svg%3E") no-repeat right 0.8rem center;
+    border-color: rgba(91, 107, 153, 0.4);
+    color: var(--primary-color);
+    font-weight: 500;
+    padding-right: 2.5rem;
+    transition: all 0.3s ease;
+}
+
+/* 状态选择框禁用样式优化 */
+#wirelessContainer #status2g.disabled,
+#wirelessContainer #status5g.disabled {
+    background: var(--status-disabled-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888888' d='M2 4l4 4 4-4' stroke='%23888888' stroke-width='1'/%3E%3C/svg%3E") no-repeat right 0.8rem center;
+    border-color: rgba(70, 70, 70, 0.6);
+    color: #888;
+    opacity: 0.8;
+    filter: saturate(0.8);
+}
+
+/* 状态选择框交互效果优化 */
+#wirelessContainer #status2g:not(.disabled):hover,
+#wirelessContainer #status5g:not(.disabled):hover {
+    background-color: rgba(91, 107, 153, 0.4);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+#wirelessContainer #status2g:not(.disabled):active,
+#wirelessContainer #status5g:not(.disabled):active {
+    transform: translateY(0);
+}
+
+/* 设置组显示/隐藏优化 */
+#settings2g,
+#settings5g {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    max-height: 500px;
+    overflow: hidden;
+    transform-origin: top;
+    transform: scaleY(1);
+}
+
+#settings2g.hidden,
+#settings5g.hidden {
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
+    transform: scaleY(0);
+}
+
+/* 无线设置区域悬停效果优化 */
+.wireless-section {
+    background: rgba(51, 51, 51, 0.5);
+    padding: 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 0.3rem;
+    border: 1px solid rgba(74, 86, 98, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.wireless-section:hover {
+    background: rgba(51, 51, 51, 0.6);
+    border-color: rgba(74, 86, 98, 0.3);
+}
+
+.wireless-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent,
+        var(--primary-color),
+        transparent
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.wireless-section:hover::before {
+    opacity: 0.5;
+}
+
+/* 无线设置页面标题样式优化 */
+#wirelessContainer h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#wirelessContainer h2::before {
+    content: '📡';
+    font-size: 1.2em;
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* 保存按钮样式优化 */
+#saveWirelessButton {
+    background: linear-gradient(45deg, #4a5d75, #5b6b99);
+    border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+#saveWirelessButton:hover {
+    background: linear-gradient(45deg, #576d89, #6b7db3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#saveWirelessButton:active {
+    transform: translateY(0);
+}
+
+#saveWirelessButton::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.6s, opacity 0.6s;
+}
+
+#saveWirelessButton:hover::after {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* 禁用状态样式优化 */
+#wirelessContainer input:disabled,
+#wirelessContainer select:disabled {
+    background: var(--status-disabled-bg);
+    border-color: rgba(70, 70, 70, 0.4);
+    color: #888;
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: grayscale(0.5);
+    box-shadow: none;
+    transition: all 0.3s ease;
+}
+
+#wirelessContainer .input-group:has(input:disabled) label,
+#wirelessContainer .input-group:has(select:disabled) label {
+    color: #888;
+    opacity: 0.7;
+}
+
+/* 加载状态效果 */
+.wireless-section.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.wireless-section.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    backdrop-filter: blur(2px);
+}
+
+.wireless-section.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--primary-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1;
+}
+
+/* 热点配置页面的保存按钮样式 */
+#configContainer #saveButton {
+    margin-top: 0.5rem;  /* 增加与上方元素的间距 */
+}
+
+/* 无线设置页面的保存按钮样式 */
+#saveWirelessButton {
+    background: linear-gradient(45deg, #4a5d75, #5b6b99);
+    border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;  /* 保持原来的间距 */
+}
+
+/* 状态选择框选项样式优化 */
+#wirelessContainer select option {
+    background-color: #2d3748;  /* 深色背景 */
+    color: #fff;  /* 白色文字 */
+    padding: 8px 12px;  /* 增加内边距 */
+    font-size: 0.95rem;
+}
+
+/* 选择框选项hover状态 */
+#wirelessContainer select option:hover,
+#wirelessContainer select option:focus {
+    background-color: #3a4a63 !important;  /* 稍微亮一点的背景 */
+    color: var(--primary-color);  /* 使用主题色 */
+}
+
+/* 选择框选项选中状态 */
+#wirelessContainer select option:checked {
+    background-color: #3a4a63 !important;
+    color: var(--primary-color);
+}
+
+/* 状态选择框特殊样式 */
+#wirelessContainer #status2g option,
+#wirelessContainer #status5g option {
+    background-color: #2d3748;  /* 深色背景 */
+    color: #fff;  /* 白色文字 */
+    font-weight: normal;  /* 正常字重 */
+}
+
+/* 状态选择框选中选项样式 */
+#wirelessContainer #status2g option:checked,
+#wirelessContainer #status5g option:checked {
+    background-color: #3a4a63;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* 状态选择框hover选项样式 */
+#wirelessContainer #status2g option:hover,
+#wirelessContainer #status5g option:hover {
+    background-color: #3a4a63;
+    color: var(--primary-color);
 }
