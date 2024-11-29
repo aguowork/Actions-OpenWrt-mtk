@@ -4,9 +4,9 @@
     --secondary-color: #00b8ff;
     --background-color: #282828;
     --text-color: #ffffff;
-    --highlight-color: #ffd700;
+    --highlight-color: #FFC107;
     --border-color: #4a5662;
-    --input-bg-color: #455844;
+    --input-bg-color:rgba(74, 86, 98, 0.2);
     --input-focus-bg-color: #4c614a;
     --disabled-bg-color: #2d2d2d;
     --disabled-text-color: #666;
@@ -29,6 +29,8 @@ body {
     display: flex;
     flex-direction: column;
     font-size: 16px;
+    opacity: 1;
+    animation: none;
 }
 
 /* 容器样式 */
@@ -61,6 +63,13 @@ body {
     padding: 0.5rem;
     gap: 0.5rem;
     width: 100%;
+    margin-top: 0;
+    padding-top: 90px;
+    min-height: 100vh;
+    background: var(--background-color);
+    transition: padding-top 0.3s ease;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .content-container {
@@ -70,6 +79,14 @@ body {
     flex-direction: column;
     gap: unset;
     height: auto;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+    will-change: transform;
+    animation: fadeInUp 0.3s ease forwards;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
 }
 
 .content-container.active {
@@ -80,14 +97,20 @@ body {
 .nav-bar {
     display: flex;
     justify-content: space-around;
-    padding: 0.5rem;
+    padding: 0.3rem 0.2rem;
+    gap: 0.1rem;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    position: sticky;
-    top: 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: fixed;
+    top: 0.5rem;
+    left: 0.3rem;
+    right: 0.3rem;
     z-index: 100;
-    margin-bottom: 0.5rem;
-    background-color: var(--background-color);
+    background-color: rgba(40, 40, 40, 0.95);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
 }
 
 .nav-item {
@@ -95,25 +118,26 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0.6rem;
+    padding: 0.2rem 0.1rem;
     cursor: pointer;
-    border-radius: 12px;
+    border-radius: 8px;
     transition: all 0.3s ease;
     flex: 1;
     text-align: center;
-    min-height: 72px;
+    min-height: 58px;
+    font-size: 0.82rem;
     white-space: nowrap;
 }
 
 .nav-item.active {
-    background: #3a3a3a;
-    color: var(--primary-color);
+    background: rgb(74 93 117);
+    color: #FFC107;
     transform: scale(1.05);
 }
 
 .nav-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.2rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.1rem;
     font-style: normal;
 }
 
@@ -151,6 +175,8 @@ body {
 /* 输入组样式 */
 .input-group {
     margin-bottom: 0.2rem;
+    padding: 2px;
+    position: relative;
 }
 
 .input-group label {
@@ -181,8 +207,13 @@ select {
 input:focus,
 select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(0, 255, 149, 0.5);
+    box-shadow: 0 0 0 2px rgba(0, 255, 149, 0.2);
     outline: none;
+    transform: translateY(-1px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+    margin-top: 1px;
 }
 
 input::placeholder {
@@ -210,21 +241,21 @@ input[type="button"] {
     font-weight: bold;
     font-size: 1rem;
     width: 100%;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    overflow: visible;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
     margin-top: 0.3rem;
 }
 
 button:hover,
 input[type="button"]:hover {
-    background: #576d89;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 button:active,
 input[type="button"]:active {
-    transform: scale(0.98);
-    background: #3d4d61;
+    transform: translateY(2px) scale(0.98);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .button-group {
@@ -432,8 +463,9 @@ h2 {
     align-items: center;
     gap: 0.5rem;
     width: 100%;
-    text-shadow: 0 0 20px rgba(0, 255, 149, 0.2);
+    letter-spacing: 0.5px;
     animation: gradientMove 3s ease infinite;
+    text-shadow: none;
 }
 
 h2 .subtitle {
@@ -487,6 +519,7 @@ h2::after {
     h2 {
         font-size: 1.2rem;
         padding: 0.4rem 0;
+        margin-top: 0.5rem;
     }
 }
 
@@ -744,6 +777,7 @@ h2::after {
     justify-content: center;
     align-items: center;
     z-index: 9999;
+    backdrop-filter: blur(4px);
 }
 
 .loading-spinner.hidden {
@@ -757,12 +791,14 @@ h2::after {
     border-top: 4px solid transparent;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    box-shadow: 0 0 15px rgba(0, 255, 149, 0.3);
 }
 
 .loading-text {
     color: var(--primary-color);
     margin-top: 1rem;
     font-size: 1rem;
+    text-shadow: 0 0 10px rgba(0, 255, 149, 0.5);
 }
 
 @keyframes spin {
@@ -806,7 +842,7 @@ h2::after {
     background: #2a2a2a;
 }
 
-/* 修改状态文本域样式 */
+/* 修改状态文域样式 */
 #autoSwitchStatus {
     flex: 1;
     overflow-x: auto;
@@ -821,45 +857,33 @@ h2::after {
     font-family: 'Consolas', monospace;
 }
 
-/* 自定义滚动��样式 */
+/* 自定义滚动样式 */
 #autoSwitchStatus::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }
 
 #autoSwitchStatus::-webkit-scrollbar-track {
-    background: #222;
-    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #autoSwitchStatus::-webkit-scrollbar-thumb {
-    background: #4a5d75;
-    border-radius: 5px;
-    border: 2px solid #333;
+    background: rgba(74, 93, 117, 0.6);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.3s ease;
 }
 
 #autoSwitchStatus::-webkit-scrollbar-thumb:hover {
-    background: #576d89;
+    background: rgba(74, 93, 117, 0.8);
 }
 
 /* 自定义 WiFi 列表滚动条样式 */
-.wifi-list::-webkit-scrollbar {
-    width: 10px;
-}
-
-.wifi-list::-webkit-scrollbar-track {
-    background: #222;
-    border-radius: 5px;
-}
-
-.wifi-list::-webkit-scrollbar-thumb {
-    background: #4a5d75;
-    border-radius: 5px;
-    border: 2px solid #333;
-}
-
-.wifi-list::-webkit-scrollbar-thumb:hover {
-    background: #576d89;
+.wifi-list::-webkit-scrollbar,
+.wifi-select-list::-webkit-scrollbar {
+    width: 8px;
 }
 
 .auto-switch-tip {
@@ -960,7 +984,7 @@ h2::after {
     background: #576d89;
 }
 
-/* 添加空状态样式 */
+/* 添加状态样式 */
 .wifi-empty-state {
     display: flex;
     flex-direction: column;
@@ -1104,7 +1128,6 @@ h2::after {
     gap: 0.5rem;
     margin-bottom: 1rem;
     padding-bottom: 0.8rem;
-    border-bottom: 1px solid #444;
 }
 
 .delete-icon {
@@ -1299,7 +1322,7 @@ h2::after {
     transform: scale(0.95);
 }
 
-/* 管理界面标题栏样式 */
+/* 管理界标题栏样式 */
 .manage-header {
     position: relative;  /* 改为对定位 */
     margin-bottom: 0.4rem;
@@ -1308,12 +1331,13 @@ h2::after {
 .manage-header h2 {
     margin: 0;
     width: 100%;  /* 确保标题占满宽度 */
+    margin-top: 0.5rem;
 }
 
 /* WiFi列表控制按钮样式 */
 .wifi-list-controls {
     position: absolute;  /* 绝对定位 */
-    right: 1.9rem;        /* 增加右边距到2rem，让按钮再往左移动一点 */
+    right: 1.9rem;        /* 增加右边距到2rem，让按钮再往左��动一点 */
     top: 50%;          /* 垂直居中 */
     transform: translateY(-50%);  /* 精确垂直居中 */
     display: flex;
@@ -1351,7 +1375,7 @@ h2::after {
 @media (max-width: 480px) {
     .nav-item {
         padding: 0.4rem;  /* 更小的内边距 */
-        font-size: 0.9rem;  /* 稍微减小字体小 */
+        font-size: 0.9rem;  /* 稍微减小字体 */
     }
     
     .nav-icon {
@@ -1372,7 +1396,7 @@ h2::after {
 
 .wireless-section h3 {
     color: var(--primary-color);
-    margin-bottom: 1.2rem;
+    margin-bottom: 0.5rem;
     font-size: 1.1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid rgba(74, 86, 98, 0.2);
@@ -1426,10 +1450,12 @@ h2::after {
 #wirelessContainer .input-group {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 0.8rem;
+    gap: 0.1rem;
+    margin-bottom: 0.1rem;
     position: relative;
     transition: opacity 0.3s ease;
+    padding: 2px;
+    margin-top: 1px;
 }
 
 /* 标签样式优化 */
@@ -1499,7 +1525,7 @@ h2::after {
 /* 无线设置区域悬停效果优化 */
 .wireless-section {
     background: rgba(51, 51, 51, 0.5);
-    padding: 1.2rem;
+    padding: 10px;
     border-radius: 12px;
     margin-bottom: 0.3rem;
     border: 1px solid rgba(74, 86, 98, 0.2);
@@ -1673,7 +1699,7 @@ h2::after {
     color: var(--primary-color);
 }
 
-/* 状态选择框特殊样式 */
+/* 状态选框特殊样式 */
 #wirelessContainer #status2g option,
 #wirelessContainer #status5g option {
     background-color: #2d3748;  /* 深色背景 */
@@ -1694,4 +1720,280 @@ h2::after {
 #wirelessContainer #status5g option:hover {
     background-color: #3a4a63;
     color: var(--primary-color);
+}
+
+/* 添加内容切换动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 添加导航栏显示动画 */
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* 统一下拉列表样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(74, 93, 117, 0.6);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 93, 117, 0.8);
+}
+
+/* 修改 WiFi 列表滚动条样式，使用全局样式 */
+.wifi-list::-webkit-scrollbar,
+.wifi-select-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+/* 优化内容容器的过渡效果 */
+.content-container {
+    /* 保持现有样式 */
+    transform: translateY(0);
+    opacity: 1;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-container:not(.active) {
+    transform: translateY(10px);
+    opacity: 0;
+}
+
+/* 优化导航栏激活状态的过渡效果 */
+.nav-item {
+    /* 保持现有样式 */
+    transform: translateY(0);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item.active {
+    /* 保持现有样式 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 优化按钮悬停效果 */
+button:hover, 
+input[type="button"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 美化选择框样式 */
+#wirelessContainer select {
+    appearance: none;
+    background: var(--input-bg-color) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ff95' d='M2 4l4 4 4-4' stroke='%2300ff95' stroke-width='1'/%3E%3C/svg%3E") no-repeat right 0.8rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#wirelessContainer select:hover {
+    background-color: rgba(74, 86, 98, 0.3);
+    border-color: var(--primary-color);
+}
+
+/* 美化选择框选项样式 */
+#wirelessContainer select option {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+/* 选项悬停和选中状态 */
+#wirelessContainer select option:hover,
+#wirelessContainer select option:checked {
+    background-color: #2d3748 !important;
+    color: var(--primary-color);
+}
+
+/* 禁用状态样式 */
+#wirelessContainer select:disabled {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666666' d='M2 4l4 4 4-4' stroke='%23666666' stroke-width='1'/%3E%3C/svg%3E");
+    opacity: 0.7;
+}
+
+#wirelessContainer select:disabled option {
+    background-color: #1a1a1a;
+    color: #666;
+}
+
+/* 修改选择框打开时的样式 */
+#wirelessContainer select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 255, 149, 0.2);
+    outline: none;
+}
+
+/* 统一下拉列表样式 */
+#wirelessContainer select,
+#wirelessContainer select option {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}
+
+/* 移动端适配优化 */
+@media (max-width: 480px) {
+    /* 减小内容容器内边距 */
+    .content-container {
+        padding: 0.6rem;
+    }
+
+    /* 调整输入框和选择框的高度 */
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    select {
+        height: 36px; /* 稍微减小高度 */
+        font-size: 0.95rem; /* 稍微减小字体 */
+    }
+
+    /* 调整按钮大小 */
+    button, 
+    input[type="button"] {
+        height: 44px; /* 减小按钮高度 */
+        font-size: 0.95rem;
+    }
+
+    /* 调整信息项的内边距 */
+    .info-item {
+        padding: 0.8rem;
+        gap: 0.6rem;
+    }
+}
+
+/* 添加触摸反馈效果 */
+@media (hover: none) {
+    /* 按钮触摸反馈 */
+    button:active, 
+    input[type="button"]:active {
+        background: #3d4d61;
+        transform: scale(0.98);
+        transition: all 0.1s ease;
+    }
+
+    /* 选择框触摸反馈 */
+    select:active {
+        background-color: rgba(74, 86, 98, 0.4);
+    }
+
+    /* 列表项触摸反馈 */
+    .wifi-item:active,
+    .wifi-select-item:active {
+        background-color: rgba(74, 86, 98, 0.3);
+    }
+}
+
+/* 输入验证反馈 */
+input:invalid {
+    border-color: #ff6b6b;
+    animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* 添加媒体查询，针对特小屏幕设备 */
+@media (max-width: 360px) {
+    .nav-item {
+        padding: 0.2rem 0.1rem;
+        min-height: 55px;
+        font-size: 0.8rem;
+    }
+
+    .nav-icon {
+        font-size: 1.2rem;
+        margin-bottom: 0.1rem;
+    }
+}
+
+/* 添加媒体查询，针对超小屏幕设备 */
+@media (max-width: 320px) {
+    .nav-bar {
+        left: 0.15rem;
+        right: 0.15rem;
+        top: 0.2rem;
+    }
+}
+
+/* 优化导航项文本在超小屏幕上的显示 */
+@media (max-width: 320px) {
+    .nav-item span {
+        font-size: 0.65rem;  /* 进一步减小字体 */
+        line-height: 1.2;    /* 减小行高 */
+    }
+}
+
+/* 优化内容容器在小屏幕上的内边距 */
+@media (max-width: 360px) {
+    .content-container {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 320px) {
+    .content-container {
+        padding: 0.4rem;
+    }
+}
+
+/* 添加无线设置区域的过渡动画 */
+.wireless-section {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.wireless-section.loading {
+    opacity: 0.6;
+    transform: scale(0.98);
+    pointer-events: none;
+}
+
+/* 优化输入框禁用状态的样式 */
+.wireless-section input:disabled,
+.wireless-section select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--disabled-bg-color);
+}
+
+/* 添加输入框和选择框的过渡效果 */
+.wireless-section input,
+.wireless-section select {
+    transition: opacity 0.3s ease, background-color 0.3s ease;
 }

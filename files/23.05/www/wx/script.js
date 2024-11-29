@@ -806,7 +806,7 @@ function autoSwitchTimer() {
 document.getElementById('encryption').addEventListener('change', function () {
     const encryptionType = this.value;
     const passwordContainer = document.getElementById('passwordContainer');
-    // 检查选择的加密类型，隐藏或显示密码输入
+    // 检查选择加密类型，隐藏或显示密码输入
     if (encryptionType === 'none' || encryptionType === 'owe') {
         // 如果是无加密类，隐藏密码输入框
         passwordContainer.style.display = 'none';
@@ -998,7 +998,7 @@ function closeSuccessDialog() {
                 nav.classList.remove('active');
             });
             
-            // 激活"当前配置"导航项
+            // 激活"当前配置"导航
             const statusNavItem = document.querySelector('[data-target="statusContainer"]');
             if (statusNavItem) {
                 statusNavItem.classList.add('active');
@@ -1027,7 +1027,7 @@ function closeSuccessDialog() {
 // 添加点击 emoji 效果
 document.addEventListener('DOMContentLoaded', function() {
     // emoji 数组
-    const emojis = ['🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐','🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔','🎠','😀','😃','😄','😁','😆','😅','😂','🤣','😊','😚','','😗','😘','😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑','🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺','😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌','😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤','😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈','🤩','🤒','😷','🤧','🤪','👻','😉','🐽','😉','🥰','🤖','🥹','😺','😸','😹','🤭','👏','😭','🫣','😾','😿','🙀','😽','😼','😻','❤','💖','💕','🐶','🐐','🦢','🤓','🖕','😘','🥱','🌞','💩','🤣'];
+    const emojis = ['🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐','🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔','🎠','😀','😃','😄','😁','😆','😅','😂','🤣','😊','😚','😗','😘','😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑','🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺','😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌','😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤','😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈','🤩','🤒','😷','🤧','🤪','👻','😉','🐽','😉','🥰','🤖','🥹','😺','😸','😹','🤭','😭','🫣','😾','😿','🙀','😽','😼','😻','❤','💖','💕','🐶','🐐','🦢','🤓','😘','🥱','🌞','💩','🤣'];
     
     // 添加点击事件监听器，但排除label和input元素
     document.addEventListener('click', function(e) {
@@ -1282,6 +1282,9 @@ async function fetchWirelessSettings() {
         showLoading();
         setLoadingText('无线设置加载中...');
 
+        // 先清空所有输入框和选择框的值
+        clearWirelessSettings();
+
         // 请求后端获取无线设置
         const response = await fetch('/cgi-bin/wx/integrated.sh?action=getwireless');
         if (!response.ok) {
@@ -1304,8 +1307,6 @@ async function fetchWirelessSettings() {
             htmode_5g: data.htmode_5g,
             hidden_5g: data.hidden_5g === "true" ? "1" : "0"
         };
-        // 输出log
-        //console.log('获取到的状态:', initialWirelessSettings);
         
         // 设置2.4G表单值
         document.getElementById('status2g').value = initialWirelessSettings.disabled_2g;
@@ -1336,6 +1337,42 @@ async function fetchWirelessSettings() {
         hideLoading();
         setLoadingText();
     }
+}
+
+// 优化清空无线设置的函数
+function clearWirelessSettings() {
+    // 添加淡出动画类
+    document.querySelectorAll('.wireless-section').forEach(section => {
+        section.classList.add('loading');
+    });
+
+    // 延迟清空操作，等待动画完成
+    setTimeout(() => {
+        // 清空2.4G设置
+        document.getElementById('status2g').value = '';
+        document.getElementById('ssid2g').value = '';
+        document.getElementById('key2g').value = '';
+        document.getElementById('channel2g').value = '';
+        document.getElementById('htmode2g').value = '';
+        document.getElementById('hidden2g').value = '';
+        
+        // 清空5G设置
+        document.getElementById('status5g').value = '';
+        document.getElementById('ssid5g').value = '';
+        document.getElementById('key5g').value = '';
+        document.getElementById('channel5g').value = '';
+        document.getElementById('htmode5g').value = '';
+        document.getElementById('hidden5g').value = '';
+
+        // 移除加载动画类
+        document.querySelectorAll('.wireless-section').forEach(section => {
+            section.classList.remove('loading');
+        });
+
+        // 更新显示状态
+        toggleWifiSettings('2g');
+        toggleWifiSettings('5g');
+    }, 300);
 }
 
 /**
@@ -1468,7 +1505,20 @@ async function confirmWirelessSave() {
 function toggleWifiSettings(band) {
     const status = document.getElementById(`status${band}`).value;
     const settings = document.getElementById(`settings${band}`);
-    settings.style.display = status === '0' ? 'block' : 'none';
+    //settings.style.display = status === '0' ? 'block' : 'none';
+        
+    // 如果状态为空或关闭，则隐藏设置
+    if (!status || status === '1') {
+        settings.style.display = 'none';
+        // 当隐藏设置时禁用输入框
+        const inputs = settings.querySelectorAll('input, select');
+        inputs.forEach(input => input.disabled = true);
+    } else {
+        settings.style.display = 'block';
+        // 当显示设置时启用输入框
+        const inputs = settings.querySelectorAll('input, select');
+        inputs.forEach(input => input.disabled = false);
+    }
 }
 
 /**
