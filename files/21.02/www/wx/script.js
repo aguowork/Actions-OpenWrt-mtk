@@ -790,7 +790,7 @@ async function confirmTimer() {
             }
         }
     } catch (error) {
-        console.error('请求失败，错误信息：', error);
+        console.error('请求失败，错信息：', error);
         if (statusElement) {
             statusElement.textContent = `请求失败，错误信息：${error.message}`;
         }
@@ -806,7 +806,7 @@ function autoSwitchTimer() {
 document.getElementById('encryption').addEventListener('change', function () {
     const encryptionType = this.value;
     const passwordContainer = document.getElementById('passwordContainer');
-    // 检查选择加密类型，隐藏或显示密码输入
+    // 检查选择的密类型，隐藏或显示密码输入
     if (encryptionType === 'none' || encryptionType === 'owe') {
         // 如果是无加密类，隐藏密码输入框
         passwordContainer.style.display = 'none';
@@ -984,7 +984,7 @@ function showSuccessDialog(wifiConfig) {
     }
 }
 
-// 关闭成功弹窗并返回配置
+// 关闭成功弹并返回配置
 function closeSuccessDialog() {
     const dialog = document.getElementById('successDialog');
     if (dialog) {
@@ -1186,7 +1186,7 @@ function copyLogs() {
     const copyButton = document.getElementById('logCounter');
     
     try {
-        // 创建临时文本区域
+        // 创建临时文本框
         const textArea = document.createElement('textarea');
         textArea.value = logText;
         textArea.style.position = 'fixed';
@@ -1447,6 +1447,11 @@ function closeWirelessSaveConfirmDialog() {
         setTimeout(() => {
             dialog.classList.add('hidden');
             dialog.classList.remove('closing');
+            // 重置弹窗状态
+            const initialState = dialog.querySelector('.confirm-initial');
+            const loadingState = dialog.querySelector('.confirm-loading');
+            initialState.classList.remove('hidden');
+            loadingState.classList.add('hidden');
         }, 300);
     }
 }
@@ -1463,38 +1468,35 @@ async function confirmWirelessSave() {
         setLoadingText('保存无线设置中...');
 
         // 从弹窗元素中获取变化的设置
-        const dialog = document.getElementById('wirelessSaveConfirmDialog'); // 获取弹窗元素
-        const changes = JSON.parse(dialog.dataset.changes); // 获取变化的设置
+        const dialog = document.getElementById('wirelessSaveConfirmDialog');
+        const changes = JSON.parse(dialog.dataset.changes);
         //console.log('提交的内容:', changes);
         // 发送变更到后端
-        const response = await fetch('/cgi-bin/wx/integrated.sh?action=savewireless', {
+        fetch('/cgi-bin/wx/integrated.sh?action=savewireless', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json' // 设置请求头
             },
             body: JSON.stringify(changes) // 发送变化的设置
         });
-        
-        // 检查响应状态
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || '保存设置失败');
-        }
-        
-        // 解析响应结果
-        const result = await response.json();
-        if (result.status !== 'success') {
-            throw new Error(result.message || '保存设置失败');
-        }
 
-        showToast('保存成功', 'success');
-        // 重新获取设置以更新初始状态
-        await fetchWirelessSettings();
+        // 直接显示成功消息，不等待响应
+        showToast('保存请求已发送，WiFi即将重启', 'success');
+        
+        // 延迟3秒后重新获取设置
+        setTimeout(async () => {
+            try {
+                await fetchWirelessSettings();
+            } catch (error) {
+                console.log('重新获取设置失败:', error);
+            }
+        }, 30000);
+
     } catch (error) {
-        console.error('保存设置失败:', error);
-        showToast(`保存失败: ${error.message}`, 'error');
+        console.error('发送保存请求失败:', error);
+        showToast('发送保存请求失败', 'error');
     } finally {
-        hideLoading();
+        hideLoading(); // 隐藏加载动画
     }
 }
 
@@ -1613,6 +1615,92 @@ function initStatusSelectHandlers() {
         status5g.addEventListener('change', () => handleStatusChange(status5g));
         // 初始化时立即检查状态
         handleStatusChange(status5g);
+    }
+}
+
+// 开始保存无线设置流程
+async function startWirelessSave() {
+    // 获取弹窗元素
+    const dialog = document.getElementById('wirelessSaveConfirmDialog');
+    const initialState = dialog.querySelector('.confirm-initial');
+    const loadingState = dialog.querySelector('.confirm-loading');
+    const countdownElement = document.getElementById('countdownTimer');
+    const progressStatus = dialog.querySelector('.progress-status');
+    
+    try {
+        // 切换到加载状态
+        initialState.classList.add('hidden');
+        loadingState.classList.remove('hidden');
+        
+        // 获取变更数据
+        const changes = JSON.parse(dialog.dataset.changes);
+        
+        // 发送保存请求
+        fetch('/cgi-bin/wx/integrated.sh?action=savewireless', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(changes)
+        });
+
+        // 显示Toast提示
+        //showToast('保存请求已发送，WiFi即将重启', 'success');
+        
+        // 开始倒计时
+        let countdown = 60;
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            // 更新进度提示
+            if (countdown <= 55) {
+                progressStatus.textContent = 'WiFi正在重启...';
+            }
+            if (countdown <= 30) {
+                progressStatus.textContent = '等待WIFI重新连接...';
+            }
+            if (countdown <= 5) {
+                progressStatus.textContent = '即将刷新设置状态...';
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                // 尝试获取新设置
+                fetchWirelessSettings()
+                    .then(() => {
+                        closeWirelessSaveConfirmDialog();
+                        showToast('设置已更新', 'success');
+                    })
+                    .catch(error => {
+                        console.log('重新获取设置失败:', error);
+                        closeWirelessSaveConfirmDialog();
+                        showToast('无法获取最新无线状态，请手动刷新', 'error');
+                    });
+            }
+        }, 1000);
+
+    } catch (error) {
+        console.error('发送保存请求失败:', error);
+        showToast('发送保存请求失败', 'error');
+        closeWirelessSaveConfirmDialog();
+    }
+}
+
+// 更新关闭弹窗函数
+function closeWirelessSaveConfirmDialog() {
+    const dialog = document.getElementById('wirelessSaveConfirmDialog');
+    if (dialog) {
+        dialog.classList.add('closing');
+        setTimeout(() => {
+            dialog.classList.add('hidden');
+            dialog.classList.remove('closing');
+            // 重置弹窗状态
+            const initialState = dialog.querySelector('.confirm-initial');
+            const loadingState = dialog.querySelector('.confirm-loading');
+            initialState.classList.remove('hidden');
+            loadingState.classList.add('hidden');
+        }, 300);
     }
 }
 

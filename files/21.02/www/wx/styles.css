@@ -1296,7 +1296,7 @@ h2::after {
 /* WiFi列表控制按钮样式 */
 .wifi-list-controls {
     position: absolute;  /* 绝对定位 */
-    right: 1.9rem;        /* 增加右边距到2rem，让按钮再往左移动一点 */
+    right: 1.9rem;      /* 增加右边距到2rem，让按钮再往左移动一点 */
     top: 50%;          /* 垂直居中 */
     transform: translateY(-50%);  /* 精确垂直居中 */
     display: flex;
@@ -1337,7 +1337,7 @@ h2::after {
 /* WiFi列表控制按钮样式 */
 .wifi-list-controls {
     position: absolute;  /* 绝对定位 */
-    right: 1.9rem;        /* 增加右边距到2rem，让按钮再往左��动一点 */
+    right: 1.9rem;      /* 增加右边距到2rem，让按钮再往左移动一点 */
     top: 50%;          /* 垂直居中 */
     transform: translateY(-50%);  /* 精确垂直居中 */
     display: flex;
@@ -1371,11 +1371,11 @@ h2::after {
     z-index: 0;   /* 确保线条在底层 */
 }
 
-/* 添加媒体查询，在小屏幕下调整导航项样式 */
+/* 添加媒体查询，在小幕下调整导航项样 */
 @media (max-width: 480px) {
     .nav-item {
         padding: 0.4rem;  /* 更小的内边距 */
-        font-size: 0.9rem;  /* 稍微减小字体 */
+        font-size: 0.9rem;  /* 稍微减小字 */
     }
     
     .nav-icon {
@@ -1996,4 +1996,483 @@ input:invalid {
 .wireless-section input,
 .wireless-section select {
     transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+/* 保存进度状态样式 */
+.save-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(74, 86, 98, 0.2);
+    border-radius: 12px;
+}
+
+.progress-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--primary-color);
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.progress-text {
+    flex: 1;
+}
+
+/* 优化进度状态文本样式 */
+.progress-status {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(0, 255, 149, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+}
+
+.progress-countdown {
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+}
+
+.progress-tips {
+    padding: 1rem;
+    background: rgba(255, 193, 7, 0.1);
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.progress-tips p {
+    color: var(--highlight-color);
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    padding-left: 0.5rem;
+}
+
+/* 状态切换动画 */
+.confirm-initial,
+.confirm-loading {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backface-visibility: hidden;  /* 防止3D变换时的闪烁 */
+    perspective: 1000px;
+}
+
+.confirm-initial.hidden,
+.confirm-loading.hidden {
+    display: none;
+    opacity: 0;
+    transform: scale(0.98);
+}
+
+/* 添加进入动画 */
+.confirm-loading:not(.hidden) {
+    animation: slideUpFade 0.3s ease forwards;
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 修改确认弹窗样式 */
+#wirelessSaveConfirmDialog .dialog-content {
+    padding: 1.5rem;
+    max-width: 400px;
+    background: linear-gradient(180deg, 
+        rgba(45, 55, 72, 0.95) 0%,
+        rgba(40, 40, 40, 0.95) 100%
+    );
+    border: 1px solid rgba(74, 86, 98, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+/* 初始确认状态样式优化 */
+.confirm-initial {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+/* 优化提示框样式 */
+.confirm-initial .progress-tips {
+    margin: 0;
+    padding: 1.2rem;
+    background: rgba(74, 86, 98, 0.15);
+    border: 1px solid rgba(74, 86, 98, 0.2);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 添加提示框的动态边框效果 */
+.confirm-initial .progress-tips::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(0, 255, 149, 0.1) 50%,
+        transparent 100%
+    );
+    border-radius: 14px;
+    z-index: -1;
+    animation: borderPulse 2s ease-in-out infinite;
+}
+
+/* 提示文本样式优化 */
+.confirm-initial .progress-tips p {
+    font-size: 0.95rem;
+    padding: 0.4rem 0;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideInTip 0.3s ease forwards;
+}
+
+/* 为每个提示项添加延迟动画 */
+.confirm-initial .progress-tips p:nth-child(1) { animation-delay: 0.1s; }
+.confirm-initial .progress-tips p:nth-child(2) { animation-delay: 0.2s; }
+.confirm-initial .progress-tips p:nth-child(3) { animation-delay: 0.3s; }
+
+/* 提示项前的图标样式 */
+.confirm-initial .progress-tips p::before {
+    content: '⚡';
+    font-size: 1rem;
+    color: var(--primary-color);
+    animation: pulseIcon 1s ease infinite;
+}
+
+/* 按钮组样式优化 */
+.confirm-initial .dialog-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* 取消按钮样式 */
+.confirm-initial .dialog-buttons button:first-child {
+    background: rgba(74, 86, 98, 0.3);
+    border: 1px solid rgba(74, 86, 98, 0.4);
+    transition: all 0.3s ease;
+}
+
+.confirm-initial .dialog-buttons button:first-child:hover {
+    background: rgba(74, 86, 98, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 确定按钮样式 */
+.confirm-initial .dialog-buttons button:last-child {
+    background: linear-gradient(45deg, #4a5d75, #5b6b99);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 确定按钮悬停效果 */
+.confirm-initial .dialog-buttons button:last-child:hover {
+    background: linear-gradient(45deg, #576d89, #6b7db3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(91, 107, 153, 0.3);
+}
+
+/* 确定按钮点击效果 */
+.confirm-initial .dialog-buttons button:last-child:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(91, 107, 153, 0.2);
+}
+
+/* 添加新的动画关键帧 */
+@keyframes borderPulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.01);
+    }
+}
+
+/* 优化提示文本动画 */
+@keyframes slideInTip {
+    from {
+        opacity: 0;
+        transform: translateY(10px) translateZ(0);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+    }
+}
+
+@keyframes pulseIcon {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}
+
+/* 响应式适配 */
+@media (max-width: 480px) {
+    #wirelessSaveConfirmDialog .dialog-content {
+        padding: 1.2rem;
+        margin: 0 1rem;
+    }
+
+    .confirm-initial .progress-tips {
+        padding: 1rem;
+    }
+
+    .confirm-initial .progress-tips p {
+        font-size: 0.9rem;
+        gap: 0.6rem;
+    }
+
+    .confirm-initial .dialog-buttons button {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* 加载状态样式优化 */
+.confirm-loading .save-progress {
+    margin: 0.8rem 0;
+    padding: 1.2rem;
+    background: rgba(74, 86, 98, 0.15);
+    border: 1px solid rgba(74, 86, 98, 0.2);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 0 20px rgba(0, 255, 149, 0.05);
+    backdrop-filter: blur(4px);
+}
+
+/* 添加微妙的内部阴影效果 */
+.confirm-loading .save-progress::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.03),
+        transparent
+    );
+    pointer-events: none;
+}
+
+/* 加载状态的进度提示 */
+.confirm-loading .progress-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* 倒计时文本样式 */
+.progress-countdown {
+    font-size: 0.9rem;
+    color: var(--highlight-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* 优化倒计时数字样式 */
+#countdownTimer {
+    color: var(--primary-color);
+    font-weight: 600;
+    min-width: 2.5ch;
+    display: inline-block;
+    text-align: center;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(0, 255, 149, 0.1);
+    border: 1px solid rgba(0, 255, 149, 0.2);
+    box-shadow: 0 0 8px rgba(0, 255, 149, 0.2);
+    animation: breathe 2s ease-in-out infinite;
+}
+
+/* 优化倒计时数字动画 */
+@keyframes breathe {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1) translateZ(0);
+        text-shadow: 0 0 5px rgba(0, 255, 149, 0.2);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05) translateZ(0);
+        text-shadow: 0 0 10px rgba(0, 255, 149, 0.4);
+    }
+}
+
+/* 加载状态的提示文本 */
+.confirm-loading .progress-tips {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(74, 86, 98, 0.15);
+    border: 1px solid rgba(74, 86, 98, 0.2);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.confirm-loading .progress-tips p {
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+    margin: 0.4rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeInTip 0.3s ease forwards;
+}
+
+/* 为每个提示添加延迟动画 */
+.confirm-loading .progress-tips p:nth-child(1) { animation-delay: 0.1s; }
+.confirm-loading .progress-tips p:nth-child(2) { animation-delay: 0.2s; }
+.confirm-loading .progress-tips p:nth-child(3) { animation-delay: 0.3s; }
+.confirm-loading .progress-tips p:nth-child(4) { animation-delay: 0.4s; }
+
+/* 提示文本前的图标 */
+.confirm-loading .progress-tips p::before {
+    content: '⚠';
+    font-size: 1rem;
+}
+
+/* 添加淡入动画 */
+@keyframes fadeInTip {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 响应式适配补充 */
+@media (max-width: 480px) {
+    .confirm-loading .save-progress {
+        padding: 1rem;
+        margin: 0.6rem 0;
+    }
+    
+    .confirm-loading .progress-tips {
+        padding: 0.8rem;
+    }
+    
+    .progress-status,
+    .progress-countdown {
+        font-size: 0.9rem;
+    }
+    
+    .confirm-loading .progress-tips p {
+        font-size: 0.85rem;
+    }
+}
+
+/* 修改加载状态的提示文本图标和动画 */
+.confirm-loading .progress-tips p::before {
+    content: '⚡';  /* 改为闪电图标 */
+    font-size: 1rem;
+    color: var(--primary-color);
+    animation: pulseIcon 1s ease infinite;  /* 使用相同的脉冲动画 */
+}
+
+/* 修改加载状态的提示框样式,添加发光效果 */
+.confirm-loading .progress-tips {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(74, 86, 98, 0.15);
+    border: 1px solid rgba(74, 86, 98, 0.2);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 添加与确认状态相同的边框发光效果 */
+.confirm-loading .progress-tips::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(0, 255, 149, 0.1) 50%,
+        transparent 100%
+    );
+    border-radius: 14px;
+    z-index: -1;
+    animation: borderPulse 2s ease-in-out infinite;
+}
+
+/* 进度条容器也添加发光效果 */
+.confirm-loading .save-progress::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(0, 255, 149, 0.1) 50%,
+        transparent 100%
+    );
+    border-radius: 14px;
+    z-index: -1;
+    animation: borderPulse 2s ease-in-out infinite;
+    animation-delay: 1s; /* 错开动画时间 */
+}
+
+/* 优化进度条容器动画 */
+.confirm-loading .save-progress {
+    /* 保持现有样式 */
+    transform: translateZ(0);  /* 启用GPU加速 */
+    will-change: transform;   /* 提示浏览器即将发生变化 */
+}
+
+/* 优化进度条旋转动画 */
+.progress-spinner {
+    /* 保持现有样式 */
+    transform: translateZ(0);
+    will-change: transform;
+    animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite; /* 使用更平滑的缓动函数 */
+}
+
+/* 优化提示文本图标样式 */
+.confirm-loading .progress-tips p::before {
+    content: '⚡';
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    filter: drop-shadow(0 0 5px rgba(0, 255, 149, 0.3));
+    animation: pulseIcon 1s ease infinite;
+    display: inline-block;
+    transform-origin: center;
 }

@@ -113,7 +113,7 @@
             <button id="saveButton">保存应用</button>
         </div>
 
-        <!-- 管理界面 -->
+        <!-- 热点管理界面 -->
         <div class="content-container" id="manageContainer">
             <div class="manage-header">
                 <h2>Access Points</h2>
@@ -396,14 +396,38 @@
         </div>
     </div>
 
-    <!-- 在 body 末尾添加保存确认弹窗 -->
+    <!-- 修改保存确认弹窗的内容 -->
     <div id="wirelessSaveConfirmDialog" class="dialog hidden">
         <div class="dialog-content">
-            <h3>确认保存无线设置</h3>
-            <p>您确定要保存这些更改吗？</p>
-            <div class="dialog-buttons">
-                <button onclick="closeWirelessSaveConfirmDialog()">取消</button>
-                <button onclick="confirmWirelessSave()" class="primary">确定</button>
+            <div class="confirm-state">
+                <!-- 初始确认状态 -->
+                <div class="confirm-initial">
+                    <div class="progress-tips">
+                        <p>您确定要保存这些更改吗？</p>
+                        <p>保存后WIFI将会重启</p>
+                        <p>重启期间WIFI将会断开</p>
+                    </div>
+                    <div class="dialog-buttons">
+                        <button onclick="closeWirelessSaveConfirmDialog()">取消</button>
+                        <button onclick="startWirelessSave()" class="primary">确定</button>
+                    </div>
+                </div>
+                <!-- 保存进行中状态 -->
+                <div class="confirm-loading hidden">
+                    <div class="save-progress">
+                        <div class="progress-spinner"></div>
+                        <div class="progress-text">
+                            <p class="progress-status">正在保存设置...</p>
+                            <p class="progress-countdown">即将刷新设置状态 <span id="countdownTimer">60</span>秒</p>
+                        </div>
+                    </div>
+                    <div class="progress-tips">
+                        <p>WiFi正在重启中</p>
+                        <p>等待重新WIFI连接</p>
+                        <p>即将刷新设置状态</p>
+                        <p>更改WiFi名称/密码，请手动连接刷新</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
