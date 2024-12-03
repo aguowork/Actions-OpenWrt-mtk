@@ -913,6 +913,29 @@ reboot_system() {
     ( sleep 3 && reboot ) &
 }
 
+# 添加保存排序的处理函数
+save_order() {
+    # 读取POST数据
+    read -r POST_DATA
+    
+    # 使用 jq 格式化 JSON 数据并写入临时文件
+    echo "$POST_DATA" | jq '.' > "$CONFIG_FILE.tmp"
+    
+    # 检查写入是否成功
+    if [ $? -eq 0 ]; then
+        mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"status":"success","message":"排序保存成功"}'
+    else
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"status":"error","message":"保存排序失败"}'
+        rm -f "$CONFIG_FILE.tmp"
+    fi
+}
+
+
 # 解析 QUERY_STRING 获取 action 参数
 action=$(echo "$QUERY_STRING" | sed -n 's/.*action=\([^&]*\).*/\1/p')
 
@@ -969,6 +992,9 @@ elif [ "$action" = "changePassword" ]; then
 elif [ "$action" = "rebootSystem" ]; then
     # 重启系统
     reboot_system
+elif [ "$action" = "saveOrder" ]; then
+    # 保存排序
+    save_order
 else
     # 无效的参数
     echo "Content-Type: text/html; charset=utf-8"
@@ -978,3 +1004,4 @@ else
     echo "参数：$action"
     exit 1
 fi
+

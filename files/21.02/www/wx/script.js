@@ -348,7 +348,7 @@ async function updateWiFiList() {
                 console.error("未找到WiFi列表容器");
                 return;
             }
-            listContainer.innerHTML = ''; // 清空有列表
+            listContainer.innerHTML = ''; // 清空列表
 
             if (!wifiList || wifiList.length === 0) {
                 console.log("WiFi列表为空");
@@ -357,9 +357,11 @@ async function updateWiFiList() {
             }
 
             const fragment = document.createDocumentFragment();
-            wifiList.forEach(wifi => {
+            wifiList.forEach((wifi, index) => {
                 const wifiItem = document.createElement('div');
                 wifiItem.className = 'wifi-item';
+                wifiItem.draggable = true; // 保留可拖拽属性
+                wifiItem.dataset.index = index; // 保存原始索引
                 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
@@ -379,6 +381,46 @@ async function updateWiFiList() {
                 wifiItem.appendChild(checkbox);
                 wifiItem.appendChild(label);
                 fragment.appendChild(wifiItem);
+
+                // 添加拖拽相关事件监听器
+                wifiItem.addEventListener('dragstart', handleDragStart);
+                wifiItem.addEventListener('dragend', handleDragEnd);
+                wifiItem.addEventListener('dragover', handleDragOver);
+                wifiItem.addEventListener('drop', handleDrop);
+                
+                // 修改触摸事件处理，直接绑定到 wifiItem
+                let pressTimer;
+                let isDragging = false;
+                let startY;
+
+                wifiItem.addEventListener('touchstart', (e) => {
+                    if (e.target.type === 'checkbox') return; // 如果点击的是复选框则不触发拖拽
+                    pressTimer = setTimeout(() => {
+                        isDragging = true;
+                        wifiItem.classList.add('dragging');
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    }, 500);
+                    startY = e.touches[0].clientY;
+                });
+
+                wifiItem.addEventListener('touchend', () => {
+                    clearTimeout(pressTimer);
+                    isDragging = false;
+                    wifiItem.classList.remove('dragging');
+                });
+
+                wifiItem.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const targetItem = target.closest('.wifi-item');
+                    if (targetItem && targetItem !== wifiItem) {
+                        handleReorder(wifiItem, targetItem);
+                    }
+                });
             });
             
             listContainer.appendChild(fragment);
@@ -389,6 +431,122 @@ async function updateWiFiList() {
     }
 }
   
+// 拖拽开始处理
+function handleDragStart(e) {
+    e.target.classList.add('dragging');
+    // 添加拖拽开始的震动反馈
+    if (navigator.vibrate) {
+        navigator.vibrate(50);
+    }
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', e.target.dataset.index);
+    
+    // 设置拖拽时的半透明效果
+    requestAnimationFrame(() => {
+        e.target.style.opacity = '0.8';
+    });
+}
+
+// 拖拽结束处理
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    e.target.style.opacity = '';
+    
+    // 移除所有项目上的拖拽相关类
+    document.querySelectorAll('.wifi-item').forEach(item => {
+        item.classList.remove('drag-over');
+        item.classList.remove('drag-target');
+    });
+}
+
+// 拖拽经过处理
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    const draggedItem = document.querySelector('.dragging');
+    const targetItem = e.currentTarget;
+    
+    if (draggedItem && targetItem !== draggedItem) {
+        // 移除所有项目的drag-target类
+        document.querySelectorAll('.wifi-item').forEach(item => {
+            item.classList.remove('drag-target');
+        });
+        // 添加当前目标的drag-target类
+        targetItem.classList.add('drag-target');
+        
+        // 计算拖拽方向并添加相应的类
+        const draggedRect = draggedItem.getBoundingClientRect();
+        const targetRect = targetItem.getBoundingClientRect();
+        const dragDirection = draggedRect.top < targetRect.top ? 'down' : 'up';
+        targetItem.setAttribute('data-drag-direction', dragDirection);
+    }
+}
+
+// 拖拽放置处理
+function handleDrop(e) {
+    e.preventDefault();
+    const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    const dropIndex = parseInt(e.currentTarget.dataset.index);
+    
+    if (draggedIndex !== dropIndex) {
+        handleReorder(
+            document.querySelector(`[data-index="${draggedIndex}"]`),
+            document.querySelector(`[data-index="${dropIndex}"]`)
+        );
+    }
+}
+
+// 处理重新排序
+async function handleReorder(draggedItem, targetItem) {
+    if (!draggedItem || !targetItem || draggedItem === targetItem) return;
+    
+    const draggedIndex = parseInt(draggedItem.dataset.index);
+    const targetIndex = parseInt(targetItem.dataset.index);
+    
+    try {
+        // 获取当前配置
+        const response = await fetch('wifi-config.json');
+        const config = await response.json();
+        
+        // 重新排序wifi数组
+        const [movedItem] = config.wifi.splice(draggedIndex, 1);
+        config.wifi.splice(targetIndex, 0, movedItem);
+        
+        // 保存新的排序
+        const saveResponse = await fetch('/cgi-bin/wx/integrated.sh?action=saveOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(config)
+        });
+        
+        if (saveResponse.ok) {
+            // 更新DOM
+            const parent = draggedItem.parentNode;
+            if (targetIndex > draggedIndex) {
+                parent.insertBefore(draggedItem, targetItem.nextSibling);
+            } else {
+                parent.insertBefore(draggedItem, targetItem);
+            }
+            
+            // 更新所有项的索引
+            const items = parent.querySelectorAll('.wifi-item');
+            items.forEach((item, index) => {
+                item.dataset.index = index;
+            });
+            
+            showToast('排序已保存', 'success');
+        } else {
+            showToast('保存排序失败', 'error');
+        }
+    } catch (error) {
+        console.error('保存排序失败:', error);
+        showToast('保存排序失败', 'error');
+    }
+}
+
 // 显示删除确认弹窗
 function showDeleteConfirmDialog() {
     const checkboxes = document.querySelectorAll('#wifiList input[type="checkbox"]:checked');
@@ -1348,7 +1506,7 @@ let initialWirelessSettings = {
     channel_2g: '',     // 2.4G 信道
     htmode_2g: '',      // 2.4G 带宽模式
     hidden_2g: '',      // 2.4G 是否隐藏
-    disabled_5g: '',    // 5G 是否禁用
+    disabled_5g: '',    // 5G 是否启用
     ssid_5g: '',        // 5G SSID名称
     key_5g: '',         // 5G 密码
     channel_5g: '',     // 5G 信道
