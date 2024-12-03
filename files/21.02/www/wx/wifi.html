@@ -11,9 +11,14 @@
 <body>
     <!-- 密码输入容器 -->
     <div class="container" id="loginContainer">
-        <h2>密码验证</h2>
-        <input type="password" id="password" placeholder="输入密码">
+        <h2 id="loginTitle">密码验证</h2>
+        <div id="passwordPrompt"></div>
+        <div class="password-inputs">
+            <input type="password" id="password" placeholder="请输入密码">
+            <input type="password" id="confirmPassword" placeholder="请再次输入密码" class="hidden">
+        </div>
         <input type="button" value="确认" id="confirmButton">
+        <div class="password-hint">首次使用请设置密码(至少6位)</div>
     </div>
 
     <!-- 主界面容器 -->
@@ -71,6 +76,14 @@
                         <label>🌐网络：</label>
                         <span id="currentnetworkstatus"></span>
                     </div>
+                </div>
+                <div class="button-group system-controls">
+                    <button onclick="showChangePasswordDialog()" class="system-button">
+                        <i class="nav-icon">🔑</i>管理密码
+                    </button>
+                    <button onclick="confirmReboot()" class="system-button warning">
+                        <i class="nav-icon">🔄</i>重启系统
+                    </button>
                 </div>
             </div>
         </div>
@@ -307,7 +320,7 @@
     <div id="timerDialog" class="dialog hidden">
         <div class="dialog-content">
             <h3>定时检测设置</h3>
-            <p class="dialog-desc">Crontab任务断网动连接已知热点</p>
+            <p class="dialog-desc">Crontab任务断网自动连接已知热点</p>
             <div class="input-group">
                 <label for="timerInterval">检测间隔（分钟）</label>
                 <input type="number" id="timerInterval" min="0" max="59" placeholder="建议15-30">
@@ -426,6 +439,99 @@
                         <p>等待重新WIFI连接</p>
                         <p>即将刷新设置状态</p>
                         <p>更改WiFi名称/密码，请手动连接刷新</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在 body 末尾添加热点配置保存确认弹框 -->
+    <div id="configSaveConfirmDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <div class="confirm-state">
+                <!-- 初始确认状态 -->
+                <div class="confirm-initial">
+                    <div class="progress-tips">
+                        <p>您确定要保存这些配置吗？</p>
+                        <p>保存后WIFI将会重启</p>
+                        <p>重启期间WIFI将会断开</p>
+                    </div>
+                    <div class="dialog-buttons">
+                        <button onclick="closeConfigSaveConfirmDialog()">取消</button>
+                        <button onclick="startConfigSave()" class="primary">确定</button>
+                    </div>
+                </div>
+                <!-- 保存进行中状态 -->
+                <div class="confirm-loading hidden">
+                    <div class="save-progress">
+                        <div class="progress-spinner"></div>
+                        <div class="progress-text">
+                            <p class="progress-status">正在保存配置...</p>
+                            <p class="progress-countdown">即将刷新配置状态 <span id="configCountdownTimer">60</span>秒</p>
+                        </div>
+                    </div>
+                    <div class="progress-tips">
+                        <p>WiFi正在重启中</p>
+                        <p>等待重新WIFI连接</p>
+                        <p>刷新后查看连接状态是否成功</p>
+                        <p>失败检查密码/频段/安全类型是否正确</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码弹窗 -->
+    <div id="changePasswordDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3>修改密码</h3>
+            <div class="input-group">
+                <label for="oldPassword">当前密码</label>
+                <input type="password" id="oldPassword" placeholder="请输入当前密码">
+            </div>
+            <div class="input-group">
+                <label for="newPassword">新密码</label>
+                <input type="password" id="newPassword" placeholder="请输入新密码(至少6位)">
+            </div>
+            <div class="input-group">
+                <label for="confirmNewPassword">确认新密码</label>
+                <input type="password" id="confirmNewPassword" placeholder="请再次输入新密码">
+            </div>
+            <div class="dialog-buttons">
+                <button onclick="closeChangePasswordDialog()">取消</button>
+                <button onclick="submitChangePassword()" class="primary">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重启系统确认弹窗 -->
+    <div id="rebootConfirmDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <div class="confirm-state">
+                <!-- 初始确认状态 -->
+                <div class="confirm-initial">
+                    <div class="progress-tips">
+                        <p>您确定要重启系统吗？</p>
+                        <p>重启期间WIFI将会断开</p>
+                    </div>
+                    <div class="dialog-buttons">
+                        <button onclick="closeRebootConfirmDialog()">取消</button>
+                        <button onclick="startReboot()" class="primary">确定</button>
+                    </div>
+                </div>
+                <!-- 重启进行中状态 -->
+                <div class="confirm-loading hidden">
+                    <div class="save-progress">
+                        <div class="progress-spinner"></div>
+                        <div class="progress-text">
+                            <p class="progress-status">正在重启系统...</p>
+                            <p class="progress-countdown">即将重新连接 <span id="rebootCountdownTimer">80</span>秒</p>
+                        </div>
+                    </div>
+                    <div class="progress-tips">
+                        <p>系统正在重启中</p>
+                        <p>等待重新WIFI连接</p>
+                        <p>即将刷新连接状态</p>
                     </div>
                 </div>
             </div>

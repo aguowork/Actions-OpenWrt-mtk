@@ -201,7 +201,7 @@ select {
     font-size: 1rem;
     appearance: none;
     margin: 0;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 input:focus,
@@ -241,8 +241,7 @@ input[type="button"] {
     font-weight: bold;
     font-size: 1rem;
     width: 100%;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
-    margin-top: 0.3rem;
+    transition: all 0.2s ease;
 }
 
 button:hover,
@@ -255,7 +254,6 @@ button:active,
 input[type="button"]:active {
     transform: translateY(2px) scale(0.98);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .button-group {
@@ -415,36 +413,6 @@ input[type="button"]:active {
     line-height: 1.5;
     margin: 0;
     padding-right: 0.5rem;
-}
-
-#successMessage {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    z-index: 1000;
-}
-
-.success-wrapper {
-    background: var(--background-color);
-    padding: 1.5rem;
-    border-radius: 16px;
-    text-align: center;
-    width: 90%;
-    max-width: 400px;
-}
-
-.success-content {
-    margin: 1.5rem 0;
-}
-
-.success-note {
-    color: var(--highlight-color);
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
 }
 
 h2 {
@@ -1132,7 +1100,27 @@ h2::after {
 
 .delete-icon {
     font-size: 2rem;
-    animation: warningShake 1.5s ease-in-out infinite;
+    transition: all 0.3s ease;
+}
+
+/* 添加删除中的动画效果 */
+.delete-icon.deleting {
+    animation: deleteAnimation 1s ease infinite;
+}
+
+@keyframes deleteAnimation {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1) rotate(360deg);
+        opacity: 1;
+    }
 }
 
 /* 添加警告图标晃动动画 */
@@ -1929,6 +1917,7 @@ input:invalid {
     75% { transform: translateX(5px); }
 }
 
+
 /* 添加媒体查询，针对特小屏幕设备 */
 @media (max-width: 360px) {
     .nav-item {
@@ -2299,8 +2288,9 @@ input:invalid {
     gap: 0.5rem;
 }
 
-/* 优化倒计时数字样式 */
-#countdownTimer {
+/* 优化倒计时数字样式 - 同时支持两个倒计时元素 */
+#countdownTimer,
+#configCountdownTimer {
     color: var(--primary-color);
     font-weight: 600;
     min-width: 2.5ch;
@@ -2475,4 +2465,224 @@ input:invalid {
     animation: pulseIcon 1s ease infinite;
     display: inline-block;
     transform-origin: center;
+}
+
+/* 添加密码提示样式 */
+.password-hint {
+    color: var(--highlight-color);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+#passwordPrompt {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+/* 修改密码输入容器样式 */
+.password-inputs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-top: -0.5rem;  /* 向上移动一点 */
+}
+
+.password-inputs input {
+    width: 100%;
+    height: 40px;
+    padding: 0 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--input-bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;  /* 两个输入框之间的间距 */
+}
+
+.password-inputs input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 255, 149, 0.2);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.hidden {
+    display: none;
+}
+
+/* 移除之前的密码提示样式 */
+.password-hint {
+    display: none;
+}
+
+/* 系统控制按钮组 */
+.system-controls {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.system-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.95rem;
+}
+
+.system-button.warning {
+    background: #4a5d75;
+}
+
+.system-button.warning:hover {
+    background: #2e483d;
+}
+
+/* 修改密码弹窗样式 */
+#changePasswordDialog .input-group {
+    margin-bottom: 1rem;
+}
+
+#changePasswordDialog .dialog-content {
+    max-width: 400px;
+}
+
+/* 修改删除图标基础样式 */
+.delete-icon {
+    font-size: 4rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+    transform-origin: center;
+    position: relative;
+    z-index: 2000; /* 提高层级 */
+}
+
+/* 修改删除中的动画效果 */
+.delete-icon.deleting {
+    animation: trashThrowEffect 1.5s ease-in-out infinite;
+}
+
+/* 创建一个更炫酷的"抖动-甩出-消失"动画效果 */
+@keyframes trashThrowEffect {
+    0% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1) blur(0);
+    }
+    10% {
+        transform: scale(1.2) rotate(-20deg);
+        filter: brightness(1.2) blur(0);
+    }
+    20% {
+        transform: scale(1.4) rotate(20deg) translateY(-10px);
+        filter: brightness(1.4) blur(0);
+    }
+    30% {
+        transform: scale(1.6) rotate(-20deg) translateY(-20px);
+        filter: brightness(1.6) blur(1px);
+    }
+    40% {
+        transform: scale(1.8) rotate(20deg) translateY(-30px);
+        filter: brightness(1.8) blur(2px);
+    }
+    50% {
+        transform: scale(2) rotate(-30deg) translateY(-40px);
+        filter: brightness(2) blur(4px);
+    }
+    60% {
+        transform: scale(1.6) rotate(30deg) translateY(-20px);
+        filter: brightness(1.6) blur(2px);
+    }
+    70% {
+        transform: scale(1.4) rotate(-20deg) translateY(-10px);
+        filter: brightness(1.4) blur(1px);
+    }
+    80% {
+        transform: scale(1.2) rotate(10deg) translateY(-5px);
+        filter: brightness(1.2) blur(0);
+    }
+    90% {
+        transform: scale(1.1) rotate(-5deg) translateY(-2px);
+        filter: brightness(1.1) blur(0);
+    }
+    100% {
+        transform: scale(1) rotate(0deg) translateY(0);
+        filter: brightness(1) blur(0);
+    }
+}
+
+/* 添加发光效果 */
+.delete-icon.deleting::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(circle, 
+        rgba(255, 107, 107, 0.4) 0%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    z-index: -1; /* 确保发光效果在图标下方 */
+    animation: glowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.8;
+    }
+}
+
+/* 修改删除弹窗标题样式 */
+.delete-header {
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    position: relative;
+    overflow: visible; /* 改为visible允许内容溢出 */
+}
+
+.delete-header h3 {
+    font-size: 1.6rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff8585);
+    background-clip: text;
+    -webkit-background-clip: text; /* 为了兼容性需要保留带前缀的属性 */
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+/* 添加波纹效果 */
+.delete-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent,
+        #ff6b6b,
+        transparent
+    );
+    animation: ripple 2s ease-in-out infinite;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scaleX(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scaleX(0.3);
+        opacity: 0;
+    }
 }

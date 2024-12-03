@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# 密码错误限制相关配置
+FAIL_COUNT_FILE="$(dirname "$(readlink -f "$0")")/$(basename $0 .sh)_fail_count"  # 错误计数文件路径
+# 最大错误次数
+MAX_FAIL_COUNT=5
+# 锁定时间(秒)
+LOCK_TIME=3600
 # 定义配置文件路径
 CONFIG_FILE="/www/wx/wifi-config.json"
 # 检测网络失败后重试的间隔时间（单位：秒）不能太快否则wifi会卡住，要重启才行，建议都是120-180为好
@@ -18,14 +24,6 @@ PING_HOST="223.6.6.6"
 LOG_FILE="$(dirname "$(readlink -f "$0")")/$(basename $0 .sh).log"
 # 设备名称
 DEVICE_NAME=$(uci get system.@system[0].hostname)
-# uci set uhttpd.main.script_timeout='600'
-# uci set uhttpd.main.network_timeout='600'
-# uci commit uhttpd
-# /etc/init.d/uhttpd restart
-
-# uci get uhttpd.main.script_timeout
-# uci get uhttpd.main.network_timeout
-# uhttpd默认60秒，不足够脚本运行时间，需要修改超时时间
 
 # 错误处理函数
 handle_error() {
@@ -558,7 +556,7 @@ config_function() {
             echo "错误：无效的频段"
             exit 1
         fi
-        # 使用 uci 命令设置新的 WiFi 名称和密码
+        # 使用 uci 命令置新的 WiFi 名称和密码
         uci set wireless."$sta_section".ssid="$function_SSID"
         uci set wireless."$sta_section".encryption="$function_encryption"
         uci set wireless."$sta_section".key="$function_KEY"
@@ -773,6 +771,148 @@ wireless_save_wifi() {
     echo '{"status": "success", "message": "无线设置已保存"}'
 }
 
+# 检查密码是否已设置
+check_password_set() {
+    # 检查shadow文件中是否存在wxpage用户
+    if grep -q "^wxpage:" /etc/shadow; then
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"passwordSet": true}'
+    else
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"passwordSet": false}'
+    fi
+}
+
+# 创建新密码
+create_password() {
+    # 读取POST数据
+    read -r POST_DATA
+    password=$(echo "$POST_DATA" | jq -r '.password')
+    # 检查密码是否为空
+    if [ -z "$password" ]; then
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"status": "error", "message": "密码不能为空"}'
+        exit 1
+    fi
+
+    # 使用openssl生成加密密码
+    encrypted_pass=$(echo "$password" | openssl passwd -1 -stdin)
+    
+    # 添加用户到shadow文件
+    echo "wxpage:$encrypted_pass:19000:0:99999:7:::" >> /etc/shadow
+    log_message "密码创建成功，密码为：$password"
+    # 返回成功消息
+    echo "Content-Type: application/json"
+    echo ""
+    echo '{"status": "success", "message": "密码创建成功"}'
+}
+
+# 修改验证密码函数,整合锁定检查逻辑
+verify_password() {
+    # 检查是否被锁定
+    if [ -f "$FAIL_COUNT_FILE" ]; then
+        local last_time count
+        read last_time count < "$FAIL_COUNT_FILE"
+        local current_time=$(date +%s)
+        local time_diff=$((current_time - last_time))
+        # 如果错误次数达到最大值且时间差小于锁定时间，则返回锁定状态
+        if [ "$count" -ge "$MAX_FAIL_COUNT" ] && [ "$time_diff" -lt "$LOCK_TIME" ]; then
+            local remaining_time=$((LOCK_TIME - time_diff))
+            echo "Content-Type: application/json"
+            echo ""
+            echo "{\"status\": \"locked\", \"message\": \"密码错误次数过多，请在${remaining_time}秒后重试\", \"remainingTime\": $remaining_time}"
+            exit 0
+        fi
+        
+        if [ "$time_diff" -ge "$LOCK_TIME" ]; then
+            rm -f "$FAIL_COUNT_FILE"
+        fi
+    fi
+
+    # 读取POST数据
+    read -r POST_DATA
+    password=$(echo "$POST_DATA" | jq -r '.password')
+    
+    # 从shadow文件获取加密的密码
+    encrypted_pass=$(grep "^wxpage:" /etc/shadow | cut -d: -f2)
+    
+    # 验证密码
+    test_pass=$(echo "$password" | openssl passwd -1 -stdin -salt "${encrypted_pass#\$1\$}")
+    # 如果密码验证成功，则删除错误计数文件
+    if [ "$test_pass" = "$encrypted_pass" ]; then
+        rm -f "$FAIL_COUNT_FILE"
+        log_message "登录密码验证成功：$password"
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"status": "success"}'
+    else
+        local current_time=$(date +%s)
+        local count=1
+        
+        if [ -f "$FAIL_COUNT_FILE" ]; then
+            local last_time old_count
+            read last_time old_count < "$FAIL_COUNT_FILE"
+            count=$((old_count + 1))
+        fi
+        
+        echo "$current_time $count" > "$FAIL_COUNT_FILE"
+        
+        log_message "登录密码验证失败：$password"
+        echo "Content-Type: application/json"
+        echo ""
+        if [ "$count" -ge "$MAX_FAIL_COUNT" ]; then
+            echo "{\"status\": \"locked\", \"message\": \"密码错误次数过多，请1小时后重试\", \"remainingTime\": $LOCK_TIME}"
+        else
+            local remaining=$((MAX_FAIL_COUNT - count))
+            echo "{\"status\": \"error\", \"message\": \"密码错误，还剩${remaining}次机会\", \"remainingAttempts\": $remaining}"
+        fi
+    fi
+}
+
+# 修改密码
+change_password() {
+    # 读取POST数据
+    read -r POST_DATA
+    old_password=$(echo "$POST_DATA" | jq -r '.oldPassword')
+    new_password=$(echo "$POST_DATA" | jq -r '.newPassword')
+    
+    # 验证旧密码
+    encrypted_pass=$(grep "^wxpage:" /etc/shadow | cut -d: -f2)
+    test_pass=$(echo "$old_password" | openssl passwd -1 -stdin -salt "${encrypted_pass#\$1\$}")
+    
+    if [ "$test_pass" != "$encrypted_pass" ]; then
+        log_message "修改密码失败：当前密码验证错误 $old_password"
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"status": "error", "message": "当前密码错误"}'
+        exit 1
+    fi
+    
+    # 生成新密码的加密形式
+    new_encrypted_pass=$(echo "$new_password" | openssl passwd -1 -stdin)
+    
+    # 更新shadow文件
+    sed -i "s|^wxpage:.*|wxpage:$new_encrypted_pass:19000:0:99999:7:::|" /etc/shadow
+    
+    log_message "密码修改成功，新密码为：$new_password"
+    echo "Content-Type: application/json"
+    echo ""
+    echo '{"status": "success", "message": "密码修改成功"}'
+}
+
+# 重启系统
+reboot_system() {
+    log_message "执行重启操作"
+    echo "Content-Type: application/json"
+    echo ""
+    echo '{"status": "success", "message": "系统即将重启"}'
+    # 延迟3秒执行重启,让响应有时间返回给前端
+    ( sleep 3 && reboot ) &
+}
+
 # 解析 QUERY_STRING 获取 action 参数
 action=$(echo "$QUERY_STRING" | sed -n 's/.*action=\([^&]*\).*/\1/p')
 
@@ -814,6 +954,21 @@ elif [ "$action" = "savewireless" ]; then
     # 保存无线设置
     device_get_wifi
     wireless_save_wifi
+elif [ "$action" = "checkPassword" ]; then
+    # 检查密码是否已设置
+    check_password_set
+elif [ "$action" = "createPassword" ]; then
+    # 创建新密码
+    create_password
+elif [ "$action" = "verifyPassword" ]; then
+    # 验证密码
+    verify_password
+elif [ "$action" = "changePassword" ]; then
+    # 修改密码
+    change_password
+elif [ "$action" = "rebootSystem" ]; then
+    # 重启系统
+    reboot_system
 else
     # 无效的参数
     echo "Content-Type: text/html; charset=utf-8"

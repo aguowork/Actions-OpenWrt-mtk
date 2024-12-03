@@ -1,20 +1,3 @@
-const appState = {
-    wifiConfigurations: {
-        name: '',
-        encryption: '',
-        password: '',
-        band: ''
-    },
-    currentRelayConfig: {
-        ssid: '',
-        encryption: '',
-        key: '',
-        band: '',
-        interface: '',
-        bridgeStatus: ''
-    }
-  };
-  
 async function fetchData(url, method = 'GET', body = null) {
     const timeout = 60000;
     const controller = new AbortController();
@@ -32,6 +15,7 @@ async function fetchData(url, method = 'GET', body = null) {
         const response = await fetch(url, options);
         clearTimeout(timeoutId);
 
+        // 检查响应状态
         if (!response.ok) {
             const errorStatus = response.status;
             const errorMessages = {
@@ -43,7 +27,15 @@ async function fetchData(url, method = 'GET', body = null) {
             };
             throw new Error(errorMessages[errorStatus] || `请求失败 (${errorStatus})，请稍后重试`);
         }
-        return await response.json();
+
+        // 尝试解析 JSON
+        try {
+            return await response.json();
+        } catch (jsonError) {
+            console.error('JSON解析错误:', jsonError);
+            throw new Error('数据格式错误，请稍后重试');
+        }
+
     } catch (error) {
         if (error.name === 'AbortError') {
             showToast('请求超时，请检查网络连接', 'error');
@@ -57,10 +49,6 @@ async function fetchData(url, method = 'GET', body = null) {
     } finally {
         clearTimeout(timeoutId);
     }
-}
-
-function displayErrorMessage(message) {
-    document.getElementById('errorMessage').textContent = message;
 }
 
 // 在文件开头添加音效对象
@@ -77,19 +65,15 @@ function playSound(audioElement) {
 
 // 提取显示元素的函数
 function showElement(element) {
-    if (element) {
-        element.style.display = 'block';
-    }
+    if (element) element.style.display = 'block';
 }
 
 // 提取隐藏元素的函数
 function hideElement(element) {
-    if (element) {
-        element.style.display = 'none';
-    }
+    if (element) element.style.display = 'none';
 }
 
-// 提取显示弹窗的函数
+// 提取显示弹窗的函
 function showDialog(dialog) {
     if (dialog) {
         dialog.classList.remove('hidden');
@@ -111,29 +95,110 @@ function closeDialog(dialog) {
 // 使用提取的函数
 async function validatePassword(event) {
     if (event.key === 'Enter' || event.type === 'click') {
-        playSound(clickSound); // 使用提取的音效函数
-        const password = document.getElementById('password').value;
-        if (password === 'admin') {
-            const loginContainer = document.getElementById('loginContainer');
-            if (loginContainer) {
-                loginContainer.classList.add('fade-out');
-                setTimeout(() => {
-                    hideElement(loginContainer); // 使用提取的隐藏函数
-                    const mainContainer = document.getElementById('mainContainer');
-                    if (mainContainer) {
-                        showElement(mainContainer); // 使用提取的显示函数
-                        mainContainer.classList.add('fade-in');
-                    }
-                }, 300);
-            }
-            await fetchCurrentConfig();
-        } else {
-            showToast('密码错误，请重试');
+        playSound(clickSound);
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const password = passwordInput.value;
+        
+        if (!password) {
+            showToast('请输入密码');
             return;
+        }
+
+        const isPasswordSet = await checkPasswordSet();
+        
+        if (!isPasswordSet) {
+            // 首次设置密码
+            if (password.length < 6) {
+                showToast('密码长度不能少于6位');
+                return;
+            }
+            
+            const confirmPassword = confirmPasswordInput.value;
+            if (!confirmPassword) {
+                showToast('请再次输入密码');
+                return;
+            }
+            
+            if (confirmPassword !== password) {
+                showToast('两次输入的密码不一致');
+                return;
+            }
+            
+            if (await createPassword(password)) {
+                showLoginSuccess();
+            }
+        } else {
+            // 验证已有密码
+            try {
+                const response = await fetch('/cgi-bin/wx/integrated.sh?action=verifyPassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+                const data = await response.json();
+                //输出验证结果
+                //console.log('验证密码结果:', data);
+                if (data.status === 'locked') {
+                    showToast(data.message, 'error');
+                    startLockdownTimer(data.remainingTime);
+                    passwordInput.value = '';
+                    passwordInput.disabled = true;
+                    document.getElementById('confirmButton').disabled = true;
+                } else if (data.status === 'error') {
+                    showToast(data.message, 'error');
+                    passwordInput.value = '';
+                } else if (data.status === 'success') {
+                    showLoginSuccess();
+                }
+            } catch (error) {
+                console.error('验证密码失败:', error);
+                showToast('验证密码失败，请重试');
+            }
         }
     }
 }
-  
+
+// 添加锁定倒计时函数
+function startLockdownTimer(remainingTime) {
+    const passwordInput = document.getElementById('password');
+    const confirmButton = document.getElementById('confirmButton');
+    let timeLeft = remainingTime;
+    
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    showToast(`错误次数过多，等待${minutes}分${seconds}秒解除锁定`, 'error');
+    
+    const timer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            passwordInput.disabled = false;
+            confirmButton.disabled = false;
+            showToast('已解除锁定，请重新输入密码');
+        }
+    }, 1000);
+}
+
+// 显示登录成功后的界面
+function showLoginSuccess() {
+    const loginContainer = document.getElementById('loginContainer');
+    if (loginContainer) {
+        loginContainer.classList.add('fade-out');
+        setTimeout(() => {
+            hideElement(loginContainer);
+            const mainContainer = document.getElementById('mainContainer');
+            if (mainContainer) {
+                showElement(mainContainer);
+                mainContainer.classList.add('fade-in');
+            }
+        }, 300);
+    }
+    fetchCurrentConfig();
+}
+
 // 通用函数，从 wifi-config.json 获取数据并处理
 async function processWiFiConfigData(callback) {
     const data = await fetchData('wifi-config.json');
@@ -190,7 +255,7 @@ async function showWiFiSelectDialog() {
             listContainer.appendChild(item);
         });
     } catch (error) {
-        console.error('加载已知热点列表失败:', error);
+        console.error('加载已热点列表失败:', error);
         showToast('加载已知热点列表失败，请重试');
     } finally {
         button.disabled = false; // 恢复按钮
@@ -234,7 +299,7 @@ function selectWiFi(wifi) {
             passwordContainer.style.display = 'block';
         }
     } else {
-        // 手动输入时清空所有字段
+        // 手动输入清空所有字段
         document.getElementById('wifiNameInput').value = '';
         document.getElementById('wifiPwd').value = '';
         document.getElementById('wifiBand').value = '';
@@ -361,8 +426,13 @@ async function confirmDelete() {
     const namesToDelete = Array.from(checkboxes).map(checkbox => checkbox.value);
 
     try {
-        showLoading();
-        setLoadingText(`正在删除 ${namesToDelete.length} 个热点...`);
+        // 移除显示加载动画的代码
+        // showLoading();
+        // setLoadingText(`正在删除 ${namesToDelete.length} 个热点...`);
+        
+        // 添加删除图标动画类
+        const deleteIcon = document.querySelector('.delete-icon');
+        deleteIcon.classList.add('deleting');
         
         const response = await fetch('/cgi-bin/wx/integrated.sh?action=delete', {
             method: 'POST',
@@ -385,8 +455,11 @@ async function confirmDelete() {
         console.error('删除请求失败:', error);
         showToast('删除失败，请重试');
     } finally {
-        hideLoading();
-        setLoadingText();
+        // 移除删除图标动画类
+        const deleteIcon = document.querySelector('.delete-icon');
+        deleteIcon.classList.remove('deleting');
+        // hideLoading();
+        // setLoadingText();
         deleteButton.disabled = false;
         closeDeleteConfirmDialog();
     }
@@ -466,8 +539,8 @@ function closeSaveConfirmDialog() {
 
 // 修改保存配置函数
 async function saveConfig() {
-    playSound(clickSound); // 使用提取的音效函数
-    // WIFI名、段加类、密码是否有效，无效则直接返回
+    playSound(clickSound);
+    // WIFI名、加密类型、密码是否有效，无效则直接返回
     if (!isConfigInputValid()) {
         return;
     }
@@ -477,126 +550,136 @@ async function saveConfig() {
     // 检查接口名称是否包含"不存在"或为空
     console.log('接口名称：', currentInterface);
     if (!currentInterface || currentInterface.includes('不存在')) {
-        alert('未获取到效的中继接口，无法执行继');
+        alert('未获取到有效的中继接口，无法执行中继');
         return;
     }
 
-    // 获取配置信息
-    const wifiName = document.getElementById('wifiNameInput').value;
-    const encryption = document.getElementById('encryption').value;
-    const wifiPwd = document.getElementById('wifiPwd').value;
-    const wifiBand = document.getElementById('wifiBand').value;
-
-    // 构建 WiFi 配置对象
-    const wifiConfig = {
-        name: wifiName,
-        encryption: encryption || 'none',
-        password: wifiPwd,
-        band: wifiBand
-    };
-
     // 显示确认弹窗
-    showSaveConfirmDialog(wifiConfig);
+    const dialog = document.getElementById('configSaveConfirmDialog');
+    if (dialog) {
+        dialog.classList.remove('hidden');
+        dialog.classList.remove('closing');
+    }
 }
 
-// 确认保存函数
-async function confirmSave() {
-    playSound(clickSound);
-    showLoading();
-    setLoadingText('保存配置中...');
-    
-    const wifiName = document.getElementById('confirmSSID').textContent;
-    const encryption = document.getElementById('encryption').value;
-    const wifiPwd = document.getElementById('wifiPwd').value;
-    const wifiBand = document.getElementById('confirmBand').textContent;
+// 关闭配置保存确认弹窗
+function closeConfigSaveConfirmDialog() {
+    const dialog = document.getElementById('configSaveConfirmDialog');
+    if (dialog) {
+        dialog.classList.add('closing');
+        setTimeout(() => {
+            dialog.classList.add('hidden');
+            dialog.classList.remove('closing');
+            // 重置弹窗状态
+            const initialState = dialog.querySelector('.confirm-initial');
+            const loadingState = dialog.querySelector('.confirm-loading');
+            initialState.classList.remove('hidden');
+            loadingState.classList.add('hidden');
+        }, 300);
+    }
+}
 
-    const wifiConfig = {
-        name: wifiName,
-        encryption: encryption,
-        password: wifiPwd,
-        band: wifiBand
-    };
+// 开始保存配置流程
+async function startConfigSave() {
+    // 获取弹窗元素
+    const dialog = document.getElementById('configSaveConfirmDialog');
+    const initialState = dialog.querySelector('.confirm-initial');
+    const loadingState = dialog.querySelector('.confirm-loading');
+    const countdownElement = document.getElementById('configCountdownTimer');
+    const progressStatus = dialog.querySelector('.progress-status');
 
     try {
-        // 发送保存请求
-        const saveResponse = await fetch('/cgi-bin/wx/integrated.sh?action=save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(wifiConfig)
-        });
+        // 切换到加载状态
+        initialState.classList.add('hidden');
+        loadingState.classList.remove('hidden');
 
-        if (!saveResponse.ok) {
-            throw new Error('保存配置失败，请重试');
-        }
-        console.log('WiFi 写入JSON配置成功');
+        // 获取配置信息
+        const wifiName = document.getElementById('wifiNameInput').value;
+        const encryption = document.getElementById('encryption').value;
+        const wifiPwd = document.getElementById('wifiPwd').value;
+        const wifiBand = document.getElementById('wifiBand').value;
 
-        // 发送配置请求
-        const configResponse = await fetch('/cgi-bin/wx/integrated.sh?action=config', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `ssid=${wifiName}&encryption=${encryption}&key=${wifiPwd}&band=${wifiBand}`
-        });
+        const wifiConfig = {
+            name: wifiName,
+            encryption: encryption,
+            password: wifiPwd,
+            band: wifiBand
+        };
 
-        if (!configResponse.ok) {
-            throw new Error('应用配置失败，请重试');
-        }
-        console.log('WiFi UCI配置请求完成');
+        // 同时启动倒计时和发送请求
+        const [saveResult] = await Promise.all([
+            // 发送保存和配置请求
+            (async () => {
+                // 发送保存请求
+                const saveResponse = await fetch('/cgi-bin/wx/integrated.sh?action=save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(wifiConfig)
+                });
 
-        // 关闭确认弹窗并显示成功弹窗
-        closeSaveConfirmDialog();
-        showSuccessDialog(wifiConfig);
+                if (!saveResponse.ok) {
+                    throw new Error('保存配置失败，请重试');
+                }
+                console.log('WiFi 写入JSON配置成功');
+
+                // 发送配置请求
+                const configResponse = await fetch('/cgi-bin/wx/integrated.sh?action=config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `ssid=${wifiName}&encryption=${encryption}&key=${wifiPwd}&band=${wifiBand}`
+                });
+
+                if (!configResponse.ok) {
+                    throw new Error('应用配置失败，请重试');
+                }
+                console.log('WiFi UCI配置请求完成');
+            })(),
+
+            // 倒计时逻辑
+            new Promise(resolve => {
+                let countdown = 60;
+                countdownElement.textContent = countdown;
+                const timer = setInterval(() => {
+                    countdown--;
+                    countdownElement.textContent = countdown;
+                    
+                    // 更新进度提示
+                    if (countdown <= 55) {
+                        progressStatus.textContent = 'WiFi正在重启...';
+                    }
+                    if (countdown <= 30) {
+                        progressStatus.textContent = '等待WIFI重新连接...';
+                    }
+                    if (countdown <= 5) {
+                        progressStatus.textContent = '即将跳转到连接状态...';
+                    }
+                    
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        // 关闭确认弹窗
+                        closeConfigSaveConfirmDialog();
+                        // 切换到连接状态页面
+                        const statusNavItem = document.querySelector('[data-target="statusContainer"]');
+                        if (statusNavItem) {
+                            // 触发点击事件(这会自动获取最新状态)
+                            statusNavItem.click();
+                        }
+                        showToast('配置已更新', 'success');
+                        resolve();
+                    }
+                }, 1000);
+            })
+        ]);
 
     } catch (error) {
-        console.error('配置失败:', error);
-        showToast(error.message || '配置失败，请重试', 'error');
-    } finally {
-        hideLoading();
-        setLoadingText();
+        console.error('发送保存请求失败:', error);
+        showToast('发送保存请求失败', 'error');
+        closeConfigSaveConfirmDialog();
     }
-}
-
-  
-// 返回到配置界面的函数
-function returnToConfig() {
-    // 隐藏成功消息
-    const successMessage = document.getElementById('successMessage');
-    if (successMessage) {
-        successMessage.style.display = 'none';  // 使用 style.display 而不是 classList
-    }
-
-    // 显示主容
-    const mainContainer = document.getElementById('mainContainer');
-    if (mainContainer) {
-        mainContainer.style.display = 'flex';  // 确保主容器以 flex 方式显示
-    }
-
-    // 激活配置标签页
-    document.querySelectorAll('.nav-item').forEach(nav => {
-        nav.classList.remove('active');
-    });
-    const configNavItem = document.querySelector('[data-target="configContainer"]');
-    if (configNavItem) {
-        configNavItem.classList.add('active');
-    }
-    
-    // 显示配容器，隐藏他容器
-    document.querySelectorAll('.content-container').forEach(content => {
-        content.classList.remove('active');
-        content.style.display = 'none';  // 确保所有容器都隐藏
-    });
-    
-    const configContainer = document.getElementById('configContainer');
-    if (configContainer) {
-        configContainer.classList.add('active');
-        configContainer.style.display = 'flex';  // 显示配置容器
-    }
-    
-    // 刷新配置信
-    fetchCurrentConfig();
 }
 
 // 获取当前中继配置状态
@@ -722,7 +805,7 @@ async function startAutoSwitch() {
         console.error('切换错误:', error);
         appendLog("------------------------", 'info');
         appendLog('⚠️ 已断开连接，请等待重新连接...', 'warning');
-        appendLog('⚠️ 如1分钟后仍未恢复连接，请手动连接并刷新页面', 'warning');
+        appendLog('⚠️ 如1分钟后仍未恢复连接，手动连接并刷新页面', 'warning');
         appendLog('❌ 自动切换WiFi运行异常结束', 'error');
     }
 }
@@ -790,7 +873,7 @@ async function confirmTimer() {
             }
         }
     } catch (error) {
-        console.error('请求失败，错信息：', error);
+        console.error('请求失败，错误信息：', error);
         if (statusElement) {
             statusElement.textContent = `请求失败，错误信息：${error.message}`;
         }
@@ -848,7 +931,7 @@ function resetConfigForm() {
     // 重置WiFi频段选择框
     const wifiBand = document.getElementById('wifiBand');
     if (wifiBand) {
-        wifiBand.value = '';  // 重置为默认的"请选择频段"
+        wifiBand.value = '';  // 重置为默的"请选择频段"
     }
 
     // 根据加密方式显示/隐藏密码框
@@ -858,7 +941,7 @@ function resetConfigForm() {
     }
 }
 
-// 合并所有的 DOMContentLoaded 事件处理
+// 合并所的 DOMContentLoaded 事件处理
 document.addEventListener('DOMContentLoaded', function() {
     // 导航切换处理
     const navItems = document.querySelectorAll('.nav-item');
@@ -907,7 +990,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 "• 切换会重启WiFi，出现断开连接属于正常现象",
                                 "• 定时模式，断网后会切换热点",
                                 "• 定时模式，输入 0 则是关闭",
-                                "• 当前配置，点一次刷新一次",
+                                "• 连接状态，点一次刷新一次",
                                 "• 连接失败，可能是密码、频段、安全性不对",
                             ];
                             autoSwitchTips.forEach(tip => appendLog(tip, 'warning'));
@@ -918,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 自动切换提示处理
+    // 动切换提示理
     const tips = [
         "自动切换会断开WiFi连接，输出错误是正常的",
         "自动/定时模式，都需要有 2+ 已知热点",
@@ -926,9 +1009,9 @@ document.addEventListener('DOMContentLoaded', function() {
         "定时检测模式，输入 0 则是关闭",
         "定时检测模式，断网后会切换热点",
         "PC端有线连接路由器自动切换不会报错",
-        "当前配置，点一次刷新一次",
-        "当前配置，热点连接成功，状态连接成功",
-        "当前配置，网络正常，网络连接成功",
+        "连接状态，点一次刷新一次",
+        "连接状态，热点连接成功，状态连接成功",
+        "连接状态，网络正常，网络连接成功",
         "连接失败，可能是密码、频段、安全性不对",
         "uhttpd默认60秒超时",
         "前端操作只能执行60秒就被强制结束",
@@ -984,7 +1067,7 @@ function showSuccessDialog(wifiConfig) {
     }
 }
 
-// 关闭成功弹并返回配置
+// 关闭成功弹并返配置
 function closeSuccessDialog() {
     const dialog = document.getElementById('successDialog');
     if (dialog) {
@@ -1027,11 +1110,11 @@ function closeSuccessDialog() {
 // 添加点击 emoji 效果
 document.addEventListener('DOMContentLoaded', function() {
     // emoji 数组
-    const emojis = ['🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐','🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔','🎠','😀','😃','😄','😁','😆','😅','😂','🤣','😊','😚','😗','😘','😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑','🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺','😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌','😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤','😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈','🤩','🤒','😷','🤧','🤪','👻','😉','🐽','😉','🥰','🤖','🥹','😺','😸','😹','🤭','😭','🫣','😾','😿','🙀','😽','😼','😻','❤','💖','💕','🐶','🐐','🦢','🤓','😘','🥱','🌞','💩','🤣'];
+    const emojis = ['🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐','🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔','🎠','😀','😃','😄','😁','😆','😅','🤣','😊','😚','😗','😘','😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑','🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺','😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌','😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤','😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈','🤩','🤒','😷','🤧','🤪','👻','😉','🐽','🥰','🤖','🥹','😺','😸','😹','🤭','😭','🫣','😾','😿','😽','😼','😻','❤','💖','💕','🐶','🐐','🦢','🤓','😘','🥱','🌞','💩','🤣','🥺','🥳','🥴','🥵','🥶','🥸','🥿','🦊','🦋','🦄','🦅','🦆','🦉','🦍','🦈','🦝','🦚','🦜','🦢','🦩','🦫','🦭','🧸','💝','💗','💓','💞','💘','💝','💟','💌','💋','💔','💜','🧡','💛','💚','💙','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕊','💐','🌸','🌺','🌼','🌻','🌹','🥀','🌷','🌱','🎋'];
     
     // 添加点击事件监听器，但排除label和input元素
     document.addEventListener('click', function(e) {
-        // 如果点击的是复选框、label、input或select素，则不创建emoji
+        // 如果点击的是复选框label、input或select素，则不创建emoji
         if (e.target.type === 'checkbox' || 
             e.target.tagName.toLowerCase() === 'label' || 
             e.target.tagName.toLowerCase() === 'input' ||
@@ -1042,7 +1125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 随机选择一个emoji
         const emoji = emojis[Math.floor(Math.random() * emojis.length)];
         
-        // 创建emoji元素
+        // 创建emoji元
         const emojiEl = document.createElement('span');
         emojiEl.innerText = emoji;
         emojiEl.className = 'click-emoji';
@@ -1103,9 +1186,9 @@ document.addEventListener('DOMContentLoaded', function() {
         "定时检测模式，输入 0 则是关闭",
         "定时检测模式，断网后会切换热点",
         "PC端有线连接路由器自动切换不会报错",
-        "当前配置，点一次刷新一次",
-        "当前配置，热点连接成功，状态连接成功",
-        "当前配置，网络正常，网络连接成功",
+        "连接状态，点一次刷新一次",
+        "连接状态，热点连接成功，状态连接成功",
+        "连接状态，网络正常，网络连接成功",
         "连接失败，可能是密码、频段、安全性不对",
         "uhttpd默认60秒超时",
         "前端操作只能执行60秒就被强制结束",
@@ -1356,7 +1439,7 @@ function clearWirelessSettings() {
         document.getElementById('htmode2g').value = '';
         document.getElementById('hidden2g').value = '';
         
-        // 清空5G设置
+        // 清空5G置
         document.getElementById('status5g').value = '';
         document.getElementById('ssid5g').value = '';
         document.getElementById('key5g').value = '';
@@ -1369,7 +1452,7 @@ function clearWirelessSettings() {
             section.classList.remove('loading');
         });
 
-        // 更新显示状态
+        // 更新显状态
         toggleWifiSettings('2g');
         toggleWifiSettings('5g');
     }, 300);
@@ -1457,50 +1540,6 @@ function closeWirelessSaveConfirmDialog() {
 }
 
 /**
- * 确认保存无线设置
- * 发送变更到后端并处理响应
- */
-async function confirmWirelessSave() {
-    closeWirelessSaveConfirmDialog(); // 关闭弹窗
-    
-    try {
-        showLoading(); // 显示加载动画
-        setLoadingText('保存无线设置中...');
-
-        // 从弹窗元素中获取变化的设置
-        const dialog = document.getElementById('wirelessSaveConfirmDialog');
-        const changes = JSON.parse(dialog.dataset.changes);
-        //console.log('提交的内容:', changes);
-        // 发送变更到后端
-        fetch('/cgi-bin/wx/integrated.sh?action=savewireless', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json' // 设置请求头
-            },
-            body: JSON.stringify(changes) // 发送变化的设置
-        });
-
-        // 直接显示成功消息，不等待响应
-        showToast('保存请求已发送，WiFi即将重启', 'success');
-        
-        // 延迟3秒后重新获取设置
-        setTimeout(async () => {
-            try {
-                await fetchWirelessSettings();
-            } catch (error) {
-                console.log('重新获取设置失败:', error);
-            }
-        }, 30000);
-
-    } catch (error) {
-        console.error('发送保存请求失败:', error);
-        showToast('发送保存请求失败', 'error');
-    } finally {
-        hideLoading(); // 隐藏加载动画
-    }
-}
-
-/**
  * 切换WiFi设置显示状态
  * @param {string} band - 频段('2g'或'5g')
  */
@@ -1517,7 +1556,7 @@ function toggleWifiSettings(band) {
         inputs.forEach(input => input.disabled = true);
     } else {
         settings.style.display = 'block';
-        // 当显示设置时启用输入框
+        // 当显示设置启用输入框
         const inputs = settings.querySelectorAll('input, select');
         inputs.forEach(input => input.disabled = false);
     }
@@ -1582,7 +1621,7 @@ function validateWirelessSettings() {
                 return false;
             }
             if (config.hidden === undefined || config.hidden === "") {
-                showToast(`请选择${band.toUpperCase()}是否隐藏`);
+                showToast(`请选择${band.toUpperCase()}是否隐`);
                 return false;
             }
         }
@@ -1631,54 +1670,66 @@ async function startWirelessSave() {
         // 切换到加载状态
         initialState.classList.add('hidden');
         loadingState.classList.remove('hidden');
-        
+
         // 获取变更数据
         const changes = JSON.parse(dialog.dataset.changes);
-        
-        // 发送保存请求
-        fetch('/cgi-bin/wx/integrated.sh?action=savewireless', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(changes)
-        });
 
-        // 显示Toast提示
-        //showToast('保存请求已发送，WiFi即将重启', 'success');
-        
-        // 开始倒计时
-        let countdown = 60;
-        const timer = setInterval(() => {
-            countdown--;
-            countdownElement.textContent = countdown;
-            
-            // 更新进度提示
-            if (countdown <= 55) {
-                progressStatus.textContent = 'WiFi正在重启...';
-            }
-            if (countdown <= 30) {
-                progressStatus.textContent = '等待WIFI重新连接...';
-            }
-            if (countdown <= 5) {
-                progressStatus.textContent = '即将刷新设置状态...';
-            }
-            
-            if (countdown <= 0) {
-                clearInterval(timer);
-                // 尝试获取新设置
-                fetchWirelessSettings()
-                    .then(() => {
-                        closeWirelessSaveConfirmDialog();
-                        showToast('设置已更新', 'success');
-                    })
-                    .catch(error => {
-                        console.log('重新获取设置失败:', error);
-                        closeWirelessSaveConfirmDialog();
-                        showToast('无法获取最新无线状态，请手动刷新', 'error');
-                    });
-            }
-        }, 1000);
+        // 同时启动倒计时和发送请求
+        const [saveResult] = await Promise.all([
+            // 发送保存请
+            (async () => {
+                const response = await fetch('/cgi-bin/wx/integrated.sh?action=savewireless', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(changes)
+                });
+
+                if (!response.ok) {
+                    throw new Error('保存设置失败，请重试');
+                }
+                console.log('保存无线设置UCI请求已发送，WiFi即将重启');
+            })(),
+
+            // 倒计时逻辑
+            new Promise(resolve => {
+                let countdown = 60;
+                countdownElement.textContent = countdown;
+                
+                const timer = setInterval(() => {
+                    countdown--;
+                    countdownElement.textContent = countdown;
+                    
+                    // 更新进度提示
+                    if (countdown <= 55) {
+                        progressStatus.textContent = 'WiFi正在重启...';
+                    }
+                    if (countdown <= 30) {
+                        progressStatus.textContent = '等待WIFI重新连接...';
+                    }
+                    if (countdown <= 5) {
+                        progressStatus.textContent = '即将刷新设置状态...';
+                    }
+                    
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        // 尝试获取新设置
+                        fetchWirelessSettings()
+                            .then(() => {
+                                closeWirelessSaveConfirmDialog();
+                                showToast('设置已更新', 'success');
+                            })
+                            .catch(error => {
+                                console.log('重新获取设置失败:', error);
+                                closeWirelessSaveConfirmDialog();
+                                showToast('无法获取最新无线状态，请手动刷新', 'error');
+                            });
+                        resolve();
+                    }
+                }, 1000);
+            })
+        ]);
 
     } catch (error) {
         console.error('发送保存请求失败:', error);
@@ -1701,6 +1752,198 @@ function closeWirelessSaveConfirmDialog() {
             initialState.classList.remove('hidden');
             loadingState.classList.add('hidden');
         }, 300);
+    }
+}
+
+// 在文件开头添加密码验证相关函数
+
+// 检查是否已设置密码
+async function checkPasswordSet() {
+    try {
+        const response = await fetch('/cgi-bin/wx/integrated.sh?action=checkPassword');
+        const data = await response.json();
+        return data.passwordSet;
+    } catch (error) {
+        console.error('检查密码设置状态失败:', error);
+        return false;
+    }
+}
+
+// 创建新密码
+async function createPassword(password) {
+    try {
+        const response = await fetch('/cgi-bin/wx/integrated.sh?action=createPassword', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            showToast('密码创建成功', 'success');
+            return true;
+        } else {
+            showToast(data.message || '创建密码失败');
+            return false;
+        }
+    } catch (error) {
+        console.error('创建密码失败:', error);
+        showToast('创建密码失败，请重试');
+        return false;
+    }
+}
+
+// 在文件开头添加初始化函数
+document.addEventListener('DOMContentLoaded', async function() {
+    // 检查是否已设置密码
+    const isPasswordSet = await checkPasswordSet();
+    const loginTitle = document.getElementById('loginTitle');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    if (!isPasswordSet) {
+        loginTitle.textContent = '首次使用请设置密码';
+        password.placeholder = '请输入密码(至少6位)';
+        confirmPassword.classList.remove('hidden');
+    }
+});
+
+// 显示修改密码弹窗
+function showChangePasswordDialog() {
+    const dialog = document.getElementById('changePasswordDialog');
+    showDialog(dialog);
+    // 清空输入框
+    document.getElementById('oldPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+}
+
+// 关闭修改密码弹窗
+function closeChangePasswordDialog() {
+    const dialog = document.getElementById('changePasswordDialog');
+    closeDialog(dialog);
+}
+
+// 提交修改密码
+async function submitChangePassword() {
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+        showToast('请填写所有密码字段');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showToast('新密码长度不能少于6位');
+        return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        showToast('两次输入的新密码不一致');
+        return;
+    }
+
+    try {
+        const response = await fetch('/cgi-bin/wx/integrated.sh?action=changePassword', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                oldPassword,
+                newPassword
+            })
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+            showToast('密码修改成功', 'success');
+            closeChangePasswordDialog();
+        } else {
+            showToast(data.message || '密码修改失败', 'error');
+        }
+    } catch (error) {
+        console.error('修改密码失败:', error);
+        showToast('修改密码失败，请重试', 'error');
+    }
+}
+
+// 确认重启系统
+function confirmReboot() {
+    const dialog = document.getElementById('rebootConfirmDialog');
+    showDialog(dialog);
+}
+
+// 关闭重启确认弹窗
+function closeRebootConfirmDialog() {
+    const dialog = document.getElementById('rebootConfirmDialog');
+    closeDialog(dialog);
+}
+
+// 开始重启系统
+async function startReboot() {
+    const dialog = document.getElementById('rebootConfirmDialog');
+    const initialState = dialog.querySelector('.confirm-initial');
+    const loadingState = dialog.querySelector('.confirm-loading');
+    const countdownElement = document.getElementById('rebootCountdownTimer');
+    const progressStatus = dialog.querySelector('.progress-status');
+    
+    try {
+        // 切换到加载状态
+        initialState.classList.add('hidden');
+        loadingState.classList.remove('hidden');
+
+        // 同时启动倒计时和发送请求
+        const [rebootResult] = await Promise.all([
+            // 发送重启请求
+            (async () => {
+                const response = await fetch('/cgi-bin/wx/integrated.sh?action=rebootSystem');
+                if (!response.ok) {
+                    throw new Error('重启请求失败，请重试');
+                }
+                const data = await response.json();
+                if (data.status !== 'success') {
+                    throw new Error(data.message || '重启失败');
+                }
+                console.log('重启请求已发送，系统即将重启');
+            })(),
+
+            // 倒计时逻辑
+            new Promise(resolve => {
+                let countdown = 80;
+                countdownElement.textContent = countdown;
+                
+                const timer = setInterval(() => {
+                    countdown--;
+                    countdownElement.textContent = countdown;
+                    
+                    // 更新进度提示
+                    if (countdown <= 55) {
+                        progressStatus.textContent = '系统正在重启...';
+                    }
+                    if (countdown <= 30) {
+                        progressStatus.textContent = '等待系统重新启动...';
+                    }
+                    if (countdown <= 5) {
+                        progressStatus.textContent = '即将刷新页面...';
+                    }
+                    
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        window.location.reload(); // 重新加载页面
+                        resolve();
+                    }
+                }, 1000);
+            })
+        ]);
+
+    } catch (error) {
+        console.error('重启系统失败:', error);
+        showToast('重启系统失败，请重试', 'error');
+        closeRebootConfirmDialog();
     }
 }
 
