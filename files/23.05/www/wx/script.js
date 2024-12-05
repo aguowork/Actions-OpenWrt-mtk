@@ -436,19 +436,21 @@ function addDragAndTouchListeners(item) {
  * 播放点击音效
  * @returns {Promise} 播放完成的Promise
  */
-function playClickSound() {
-    const sound = new Audio('click-sound.mp3');
-    sound.currentTime = 0;
-    return sound.play().catch(error => {
-        console.error('音效播放失败:', error);
-    });
+function playClickFeedback() {
+    // 检查设备是否支持震动playClickFeedback
+    if (navigator.vibrate) {
+        // 震动100毫秒
+        navigator.vibrate(100);
+    } else {
+        console.log('设备不支持震动功能');
+    }
 }
 
 
 // 使用提取的函数
 async function validatePassword(event) {
     if (event.key === 'Enter' || event.type === 'click') {
-        playClickSound();
+        playClickFeedback();
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const password = passwordInput.value;
@@ -888,7 +890,7 @@ async function confirmDelete() {
 
 // 修改原有的 deleteSelectedWiFi 函数
 function deleteSelectedWiFi() {
-    playClickSound();
+    playClickFeedback();
     showDeleteConfirmDialog();
 }
   
@@ -934,7 +936,7 @@ function isConfigInputValid() {
 
 // 修改保存配置函数
 async function saveConfig() {
-    playClickSound();
+    playClickFeedback();
     // WIFI名、加密类型、密码是否有效，无效则直接返回
     if (!isConfigInputValid()) {
         return;
@@ -1110,7 +1112,7 @@ async function fetchCurrentConfig() {
 
   
 async function startAutoSwitch() {
-    playClickSound();
+    playClickFeedback();
     const statusElement = document.getElementById('autoSwitchStatus');
     
     // 清空状态并添加控制按钮
@@ -1170,7 +1172,7 @@ function showTimerDialog() {
 
 // 关闭定时器设置弹窗
 function closeTimerDialog() {
-    playClickSound(); // 使用提取的音效函数
+    playClickFeedback(); // 使用提取的音效函数
     const dialog = document.getElementById('timerDialog');
     if (dialog) {
         dialog.classList.add('closing');
@@ -1183,7 +1185,7 @@ function closeTimerDialog() {
 
 // 确认定时器设置
 async function confirmTimer() {
-    playClickSound(); // 使用提取的音效函数
+    playClickFeedback(); // 使用提取的音效函数
     const intervalInput = document.getElementById('timerInterval');
     const statusElement = document.getElementById('autoSwitchStatus');
     const interval = intervalInput.value;
@@ -1229,7 +1231,7 @@ async function confirmTimer() {
 
 // 修改自切换定时函数
 function autoSwitchTimer() {
-    //playClickSound(); // 添加音效
+    //playClickFeedback(); // 添加音效
     showTimerDialog();
 }
 
@@ -1306,7 +1308,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', async function() {
-            playClickSound();
+            playClickFeedback();
             navItems.forEach(nav => nav.classList.remove('active'));
             this.classList.add('active');
 
@@ -1382,8 +1384,31 @@ document.addEventListener('DOMContentLoaded', async function() {
 // 添加点击 emoji 效果
 document.addEventListener('DOMContentLoaded', function() {
     // emoji 数组
-    const emojis = ['🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐','🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔','🎠','😀','😄','😁','😆','😅','🤣','😊','😚','😗','😘','😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑','🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺','😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌','😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤','😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈','🤩','🤒','🤧','🤪','👻','😉','🐽','🥰','🤖','🥹','😺','😸','😹','🤭','😭','🫣','','😿','😽','😼','😻','❤','💖','💕','🐶','🐐','🦢','🤓','😘','🥱','🌞',,'🤣','🥺','🥳','🥴','🥵','🥶','🥸','🥿','🦊','🦋','🦄','🦅','🦆','🦉','🦍','🦈','🦝',,'🦜','🦢','🦩','🦫','🦭','🧸','💝','💗','💓','💞','💘','💝','💟','💌','💋','💔','💜','🧡','💛','💚','💙','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕊','💐','🌸','🌺','🌼','🌻','🌹','🥀','🌷','🌱','🎋'];
-    
+    const emojis = [...new Set([
+        '🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐',
+        '🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔',
+        '🎠','😀','😄','😁','😆','😅','🤣','😊','😚','😗','😘',
+        '😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑',
+        '🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺',
+        '😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌',
+        '😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤',
+        '😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈',
+        '🤩','🤒','🤧','🤪','👻','😉','🐽','🥰','🤖','🥹','😺',
+        '😸','😹','🤭','😭','🫣','😿','😽','😼','😻','❤','💖',
+        '💕','🐶','🐐','🦢','🤓','😘','🥱','🌞','🤣','🥺','🥳',
+        '🥴','🥵','🥶','🥸','🥿','🦊','🦋','🦄','🦅','🦆','🦉',
+        '🦍','🦈','🦝','🦜','🦢','🦩','🦫','🦭','🧸','💝','💗',
+        '💓','💞','💘','💝','💟','💌','💋','💔','💜','🧡','💛',
+        '💚','💙','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨',
+        '🕊','💐','🌸','🌺','🌼','🌻','🌹','🥀','🌷','🌱','🎋',
+        '😄','😇','🥺','😌','🤤','😭','🥰','😍','🤗','😚',
+        '🥵','🤪','🤠','🥶','🥴','😩','🫠','🫶','💘','💓',
+        '😻','😽','😢','😭','😤','😖','😠','💔','🥺','😓',
+        '🤧','😥','😣','🙁','😞','😯','😱','💖','💗','💛',
+        '💚','💙','🧡','❤️','💙','💚','💜','🖤','🤍','💗',
+        '💞','💘','😻','🫶','❤️‍🔥','💌','💘','💝','🥰','🤩'
+      ])];
+
     // 添加点击事件监听器，但排除label和input元素
     document.addEventListener('click', function(e) {
         // 如果点击的是复选label、input或select素，则不创建emoji
@@ -1709,7 +1734,7 @@ function clearWirelessSettings() {
  */
 async function saveWirelessSettings() {
     // 点击音效
-    playClickSound();
+    playClickFeedback();
     // 验证设置
     if (!validateWirelessSettings()) {
         return;
@@ -2139,7 +2164,7 @@ function addHapticFeedback(intensity = 'medium') {
 
 // 显示更新确认弹窗
 function confirmUpdate() {
-    playClickSound();
+    playClickFeedback();
     const dialog = document.getElementById('updateConfirmDialog');
     toggleUI(dialog, true, 'dialog');
 }
@@ -2150,12 +2175,14 @@ function closeUpdateConfirmDialog() {
     const initialState = dialog.querySelector('.confirm-initial');
     const loadingState = dialog.querySelector('.confirm-loading');
     const progressTips = loadingState.querySelector('.progress-tips');
+    const countdownElement = dialog.querySelector('.progress-countdown');
     
     // 重置弹窗状态
     initialState.classList.remove('hidden');
     loadingState.classList.add('hidden');
     progressTips.innerHTML = ''; // 清空输出
-    
+    // 重置倒计时文本为默认值
+    countdownElement.textContent = '请勿断开电源...';
     // 关闭弹窗
     closeDialogById('updateConfirmDialog');
 }
@@ -2206,22 +2233,23 @@ async function startUpdate() {
         // 6. 显示后端返回的信息
         const messages = data.trim().split('\n');
         progressTips.innerHTML = messages.map(msg => `<p>${msg}</p>`).join('');
+        const countdownElement = dialog.querySelector('.progress-countdown');
 
         // 7. 处理结果
         if (data.includes('错误：')) {
             // 7.1 后端返回错误
+            countdownElement.textContent = '请检查网络是否正常！';
             progressStatus.textContent = '更新失败';
             await new Promise(resolve => setTimeout(resolve, 5000));
             closeUpdateConfirmDialog();
         } else if (data.includes('最新版本')) {
             // 7.2 已是最新版本
+            countdownElement.textContent = '即将关闭...';
             progressStatus.textContent = '已是最新版本';
             await new Promise(resolve => setTimeout(resolve, 3000));
             closeUpdateConfirmDialog();
         } else if (data.includes('更新完成')) {
             // 7.3 更新成功，需要刷新页面
-            // progress-countdown 显示即将刷新网页
-            const countdownElement = dialog.querySelector('.progress-countdown');
             countdownElement.textContent = '即将刷新网页...';
             progressStatus.textContent = '更新成功';
             await new Promise(resolve => setTimeout(resolve, 5000));
