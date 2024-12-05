@@ -953,6 +953,17 @@ Update_System() {
         exit 1
     fi
 
+    # 检查git和git-http是否安装
+    if ! command -v git &> /dev/null || ! opkg list-installed | grep -q "git-http"; then
+        echo "未检测到git或git-http，正在安装"
+        opkg update > /dev/null 2>&1
+        opkg install git git-http > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo "错误：无法安装git或git-http，请检查网络连接或软件源配置！"
+            exit 1
+        fi
+    fi
+
     # 获取远程仓库的标签
     REMOTE_TAGS=$(git ls-remote --tags "$GITEE_REPO" | sed 's/.*\///' | sort -V)
     # 获取最新的标签
