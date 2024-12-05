@@ -2,10 +2,8 @@
 
 # 密码错误限制相关配置
 FAIL_COUNT_FILE="$(dirname "$(readlink -f "$0")")/$(basename $0 .sh)_fail_count"  # 错误计数文件路径
-# 最大错误次数
-MAX_FAIL_COUNT=5
-# 锁定时间(秒)
-LOCK_TIME=3600
+MAX_FAIL_COUNT=5                          # 最大错误次数
+LOCK_TIME=3600                           # 锁定时间(秒)
 # 定义配置文件路径
 CONFIG_FILE="/www/wx/wifi-config.json"
 # 检测网络失败后重试的间隔时间（单位：秒）不能太快否则wifi会卡住，要重启才行，建议都是120-180为好
@@ -24,6 +22,14 @@ PING_HOST="223.6.6.6"
 LOG_FILE="$(dirname "$(readlink -f "$0")")/$(basename $0 .sh).log"
 # 设备名称
 DEVICE_NAME=$(uci get system.@system[0].hostname)
+# Gitee 项目的地址
+GITEE_REPO="https://gitee.com/okuni/wireless.git"
+# openwrt网页目录
+LOCAL_DIR="/www"
+# 临时目录
+TEMP_DIR="/tmp/gitee_repo"
+# 当前版本标签
+CURRENT_VERSION=$(cat "$(dirname "$(readlink -f "$0")")/.ver" 2>/dev/null || echo "未知版本")
 
 # 错误处理函数
 handle_error() {
@@ -114,7 +120,7 @@ get_wireless_status() {
             ),
             # 处理5GHz设备信息
             "5g_device": (
-                # 遍历所有设备，选择5GHz频段的设备
+                # 遍历所有设备选择5GHz频段的设备
                 to_entries[] | select(.value.config.band == "5g") | {
                     "device": (.key // false),                    # 设备名称
                     "band": (.value.config.band // false),        # 频段(5g)
@@ -538,7 +544,7 @@ config_function() {
     if [ "$REQUEST_METHOD" = "POST" ]; then
         # 读取 POST 请求的数据，不再进行转码处理
         read POST_DATA
-        # 使用 sed 命令从 POST 数据中提取 WiFi 名称（ssid）
+        # 使用 sed 命令从 POST 数据中提取 WiFi 名（ssid）
         function_SSID=$(echo "$POST_DATA" | sed -n 's/^.*ssid=\([^&]*\).*$/\1/p')
         function_encryption=$(echo "$POST_DATA" | sed -n 's/^.*encryption=\([^&]*\).*$/\1/p')
         # 使用 sed 命令从 POST 数据中提取 WiFi 密码（key）
@@ -935,6 +941,72 @@ save_order() {
     fi
 }
 
+# 修改 Update_System 函数
+Update_System() {
+    # 设置响应头
+    echo "Content-Type: text/plain; charset=utf-8"
+    echo ""
+
+    # 检查本地目标目录是否存在
+    if [ ! -d "$LOCAL_DIR" ]; then 
+        echo "错误：目录 $LOCAL_DIR 不存在，无法执行更新！"
+        exit 1
+    fi
+
+    # 获取远程仓库的标签
+    REMOTE_TAGS=$(git ls-remote --tags "$GITEE_REPO" | sed 's/.*\///' | sort -V)
+    # 获取最新的标签
+    LATEST_VERSION=$(echo "$REMOTE_TAGS" | tail -n 1 | sed 's/\^{}//')
+
+    # 如果没有获取到标签，退出
+    if [ -z "$LATEST_VERSION" ]; then 
+        echo "错误：无法获取版本号，无法执行更新！"
+        exit 1
+    fi
+
+    # 如果当前版本或最新版本为空，退出
+    if [ -z "$CURRENT_VERSION" ] || [ -z "$LATEST_VERSION" ]; then 
+        echo "错误：当前版本为空，无法进行比较！"
+        exit 1
+    fi
+
+    # 如果当前版本不等于最新版本，进行更新
+    if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+        # 删除临时目录（如果存在）
+        rm -rf "$TEMP_DIR"
+
+        # 克隆 Gitee 仓库到临时目录
+        if ! git clone "$GITEE_REPO" "$TEMP_DIR"; then
+            echo "错误：检查网络是否正常！"
+            exit 1
+        fi
+
+        # 检查是否克隆成功，确保临时目录包含 .git 目录
+        if [ ! -d "$TEMP_DIR/.git" ]; then
+            echo "错误：下载不完整，更新失败，请重试！"
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+
+        # 复制文件到目标目录
+        if cp -r "$TEMP_DIR"/* "$LOCAL_DIR/"; then
+            # 清理临时目录
+            rm -rf "$TEMP_DIR"
+            # 设置目录sh脚本权限
+            find "$LOCAL_DIR" -type f -name "*.sh" -exec chmod +x {} \;
+            # 更新本地版本标记
+            CURRENT_VERSION="$LATEST_VERSION"
+            echo "更新完成！版本：$CURRENT_VERSION"
+        else
+            # 复制失败
+            echo "错误：复制文件失败，请检查本地目录权限！"
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+    else
+        echo "无需更新，已是最新版本！"
+    fi
+}
 
 # 解析 QUERY_STRING 获取 action 参数
 action=$(echo "$QUERY_STRING" | sed -n 's/.*action=\([^&]*\).*/\1/p')
@@ -995,6 +1067,9 @@ elif [ "$action" = "rebootSystem" ]; then
 elif [ "$action" = "saveOrder" ]; then
     # 保存排序
     save_order
+elif [ "$action" = "updateScript" ]; then
+    # 更新脚本
+    Update_System
 else
     # 无效的参数
     echo "Content-Type: text/html; charset=utf-8"

@@ -35,7 +35,7 @@
             </div>
             <div class="nav-item" data-target="configContainer">
                 <i class="nav-icon">📡</i>
-                <span>热点配置</span>
+                <span>连接热点</span>
             </div>
             <div class="nav-item" data-target="manageContainer">
                 <i class="nav-icon">📋</i>
@@ -81,6 +81,9 @@
                     <button onclick="showChangePasswordDialog()" class="system-button">
                         <i class="nav-icon">🔑</i>管理密码
                     </button>
+                    <button onclick="confirmUpdate()" class="system-button warning">
+                        <i class="nav-icon">🔄</i>更新系统
+                    </button>
                     <button onclick="confirmReboot()" class="system-button warning">
                         <i class="nav-icon">🔄</i>重启系统
                     </button>
@@ -88,7 +91,7 @@
             </div>
         </div>
 
-        <!-- 切换热点配置容器 -->
+        <!-- 切换连接热点容器 -->
         <div class="content-container" id="configContainer">
             <h2>WiFi Setup</h2>
             <div class="input-group">
@@ -284,39 +287,7 @@
         </div>
     </div>
 
-    <!-- 添加配置成功弹窗 -->
-    <div id="successDialog" class="dialog hidden">
-        <div class="dialog-content">
-            <h3>配置成功</h3>
-            <div class="confirm-content">
-                <div class="confirm-item">
-                    <label>热点名称：</label>
-                    <span id="successSSID"></span>
-                </div>
-                <div class="confirm-item">
-                    <label>安全性：</label>
-                    <span id="successEncryption"></span>
-                </div>
-                <div class="confirm-item">
-                    <label>热点密码：</label>
-                    <span id="successKey"></span>
-                </div>
-                <div class="confirm-item">
-                    <label>频段：</label>
-                    <span id="successBand"></span>
-                </div>
-            </div>
-            <div class="dialog-tips">
-                <p class="dialog-tip">等待 60 秒</p>
-                <p class="dialog-tip">WiFi重新连接后检查连接状态</p>
-            </div>
-            <div class="dialog-buttons">
-                <button onclick="closeSuccessDialog()" class="primary">返回配置</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 在 body 末尾添加自定义弹窗 -->
+    <!-- 定时检测设置弹窗 -->
     <div id="timerDialog" class="dialog hidden">
         <div class="dialog-content">
             <h3>定时检测设置</h3>
@@ -333,42 +304,13 @@
         </div>
     </div>
 
-    <!-- 在 body 末尾添加保存确认弹窗 -->
-    <div id="saveConfirmDialog" class="dialog hidden">
-        <div class="dialog-content">
-            <h3>确认切换热点</h3>
-            <div class="confirm-content">
-                <div class="confirm-item">
-                    <label>热点名称：</label>
-                    <span id="confirmSSID"></span>
-                </div>
-                <div class="confirm-item">
-                    <label>安全性：</label>
-                    <span id="confirmEncryption"></span>
-                </div>
-                <div class="confirm-item">
-                    <label>热点密码：</label>
-                    <span id="confirmKey"></span>
-                </div>
-                <div class="confirm-item">
-                    <label>频段：</label>
-                    <span id="confirmBand"></span>
-                </div>
-            </div>
-            <div class="dialog-buttons">
-                <button onclick="closeSaveConfirmDialog()">取消</button>
-                <button onclick="confirmSave()" class="primary">确定</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 在body末尾添加加载动画容器 -->
+    <!-- 加载动画容器 -->
     <div id="loadingSpinner" class="loading-spinner hidden">
         <div class="spinner"></div>
         <div class="loading-text">处理中...</div>
     </div>
 
-    <!-- 在 body 末尾添加已知热点选择弹窗 -->
+    <!-- 已知热点选择弹窗 -->
     <div id="wifiSelectDialog" class="dialog hidden">
         <div class="dialog-content">
             <h3>选择已知热点</h3>
@@ -385,7 +327,7 @@
         </div>
     </div>
 
-    <!-- 添加删除确认弹窗 -->
+    <!-- 热点管理删除选中确认弹窗 -->
     <div id="deleteConfirmDialog" class="dialog hidden">
         <div class="dialog-content">
             <div class="delete-header">
@@ -409,7 +351,7 @@
         </div>
     </div>
 
-    <!-- 修改保存确认弹窗的内容 -->
+    <!-- 无线设置保存应用弹框 -->
     <div id="wirelessSaveConfirmDialog" class="dialog hidden">
         <div class="dialog-content">
             <div class="confirm-state">
@@ -445,7 +387,7 @@
         </div>
     </div>
 
-    <!-- 在 body 末尾添加热点配置保存确认弹框 -->
+    <!-- 连接热点保存应用弹框 -->
     <div id="configSaveConfirmDialog" class="dialog hidden">
         <div class="dialog-content">
             <div class="confirm-state">
@@ -530,8 +472,41 @@
                     </div>
                     <div class="progress-tips">
                         <p>系统正在重启中</p>
-                        <p>等待重新WIFI连接</p>
+                        <p>等待WIFI重新连接</p>
                         <p>即将刷新连接状态</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 更新系统确认弹窗 -->
+    <div id="updateConfirmDialog" class="dialog hidden">
+        <div class="dialog-content">
+            <div class="confirm-state">
+                <!-- 初始确认状态 -->
+                <div class="confirm-initial">
+                    <div class="progress-tips">
+                        <p>您确定要更新系统吗？</p>
+                        <p>更新期间请勿断开电源</p>
+                        <p>更新完成后会自动刷新</p>
+                    </div>
+                    <div class="dialog-buttons">
+                        <button onclick="closeUpdateConfirmDialog()">取消</button>
+                        <button onclick="startUpdate()" class="primary">确定</button>
+                    </div>
+                </div>
+                <!-- 更新进行中状态 -->
+                <div class="confirm-loading hidden">
+                    <div class="save-progress">
+                        <div class="progress-spinner"></div>
+                        <div class="progress-text">
+                            <p class="progress-status">正在更新系统...</p>
+                            <p class="progress-countdown">请勿断开电源...</p>
+                        </div>
+                    </div>
+                    <div class="progress-tips update-output">
+                        <!-- 这里将显示后端输出信息 -->
                     </div>
                 </div>
             </div>

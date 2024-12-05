@@ -1,3 +1,12 @@
+// 在文件顶部添加全局变量声明
+let autoScrollInterval = null;
+let scrollDebounceTimer = null;
+
+// 修改自动滚动相关变量
+const SCROLL_SPEED = 10; // 降低基础滚动速度，使滚动更平滑
+const SCROLL_THRESHOLD = 160; // 增加触发区域，提前开始滚动
+const SCROLL_ACCELERATION = 3; // 增加加速度，使滚动更灵敏
+
 async function fetchData(url, method = 'GET', body = null) {
     const timeout = 60000;
     const controller = new AbortController();
@@ -51,51 +60,395 @@ async function fetchData(url, method = 'GET', body = null) {
     }
 }
 
-// 在文件开头添加音效对象
-const clickSound = new Audio('click-sound.mp3');
-
-
-// 提取播放音效的函数
-function playSound(audioElement) {
-    audioElement.currentTime = 0;
-    audioElement.play().catch(error => {
-        console.log('音效播放失败:', error);
-    });
-}
-
-// 提取显示元素的函数
-function showElement(element) {
-    if (element) element.style.display = 'block';
-}
-
-// 提取隐藏元素的函数
-function hideElement(element) {
-    if (element) element.style.display = 'none';
-}
-
-// 提取显示弹窗的函
-function showDialog(dialog) {
-    if (dialog) {
-        dialog.classList.remove('hidden');
-        dialog.classList.remove('closing');
+/**
+ * 通用UI元素显示/隐藏切换函数
+ * @param {HTMLElement} element - 要切换的元素
+ * @param {boolean} show - 是否显示元素
+ * @param {string} type - 元素类型('element'或'dialog')
+ */
+function toggleUI(element, show = true, type = 'element') {
+    if (!element) return;
+    
+    if (type === 'element') {
+        element.style.display = show ? 'block' : 'none';
+    } else if (type === 'dialog') {
+        if (show) {
+            element.classList.remove('hidden');
+            element.classList.remove('closing');
+        } else {
+            element.classList.add('closing');
+            setTimeout(() => {
+                element.classList.add('hidden');
+                element.classList.remove('closing');
+            }, 300);
+        }
     }
+    // 使用示例:
+    //toggleUI(element, true, 'element');  // 显示元素
+    //toggleUI(element, false, 'element'); // 隐藏元素
+    //toggleUI(dialog, true, 'dialog');   // 显示弹窗
+    //toggleUI(dialog, false, 'dialog');  // 关闭弹窗
 }
 
-// 提取隐藏弹窗的函数
-function closeDialog(dialog) {
+/**
+ * 通用的关闭弹窗函数
+ * @param {string} dialogId - 弹窗元素的ID
+ * @param {boolean} resetState - 是否重置弹窗状态(默认false)
+ */
+function closeDialogById(dialogId, resetState = false) {
+    const dialog = document.getElementById(dialogId);
     if (dialog) {
         dialog.classList.add('closing');
         setTimeout(() => {
             dialog.classList.add('hidden');
             dialog.classList.remove('closing');
+            
+            // 如果需要重置状态
+            if (resetState) {
+                const initialState = dialog.querySelector('.confirm-initial');
+                const loadingState = dialog.querySelector('.confirm-loading');
+                if (initialState && loadingState) {
+                    initialState.classList.remove('hidden');
+                    loadingState.classList.add('hidden');
+                }
+            }
         }, 300);
     }
+    // 普通关闭
+    //closeDialogById('someDialog');
+    // 需要重置状态的关闭
+    //closeDialogById('someDialog', true);
 }
+
+
+/**
+ * 通用倒计时函数
+ * @param {Object} options - 倒计时配置选项
+ * @param {number} options.duration - 倒计时时长(秒)
+ * @param {HTMLElement} options.countdownElement - 显示倒计时的元素
+ * @param {HTMLElement} options.progressElement - 显示进度状态的元素(可选)
+ * @param {Object} options.progressTexts - 不同阶段的进度提示文本
+ * @param {Function} options.onComplete - 倒计时结束时的回调函数
+ * @param {Function} options.onTick - 每次倒计时更新时的回调函数(可选)
+ * @returns {Function} 停止倒计时的函数
+ */
+function startCountdown({
+    duration,
+    countdownElement,
+    progressElement,
+    progressTexts = {},
+    onComplete,
+    onTick
+}) {
+    let countdown = duration;
+    countdownElement.textContent = countdown;
+
+    const timer = setInterval(() => {
+        countdown--;
+        countdownElement.textContent = countdown;
+        
+        // 更新进度提示
+        if (progressElement && progressTexts) {
+            // 开始提示
+            if (countdown <= duration * 0.9 && progressTexts.start) {
+                progressElement.textContent = progressTexts.start;
+            }
+            // 中间提示
+            if (countdown <= duration * 0.5 && progressTexts.middle) {
+                progressElement.textContent = progressTexts.middle;
+            }
+            // 结束提示
+            if (countdown <= duration * 0.1 && progressTexts.end) {
+                progressElement.textContent = progressTexts.end;
+            }
+        }
+
+        // 执行tick回调
+        if (onTick) {
+            onTick(countdown);
+        }
+
+        if (countdown <= 0) {
+            clearInterval(timer);
+            if (onComplete) {
+                onComplete();
+            }
+        }
+    }, 1000);
+
+    // 返回停止函数
+    return () => clearInterval(timer);
+    // 使用示例:
+    //const stopCountdown = startCountdown({ ... });
+    //stopCountdown(); // 停止倒计时
+}
+
+/**
+ * 通用加载状态管理函数
+ * @param {boolean} show - 是否显示加载状态
+ * @param {string} text - 加载提示文本(可选)
+ * @param {Function} callback - 加载完成后的回调函数(可选)
+ */
+function toggleLoading(show = true, text = '处理中...', callback = null) {
+    const spinner = document.getElementById('loadingSpinner');
+    const loadingText = spinner.querySelector('.loading-text');
+
+    if (show) {
+        loadingText.textContent = text;
+        spinner.classList.remove('hidden');
+    } else {
+        spinner.classList.add('hidden');
+        loadingText.textContent = '处理中...'; // 重置为默认文本
+    }
+
+    if (!show && callback) {
+        callback();
+    }
+    // 使用示例:
+    // 显示加载状态
+    //toggleLoading(true, '正在加载...');
+    // 隐藏加载状态
+    //toggleLoading(false);
+
+    // 使用回调函数
+    // toggleLoading(true, '正在处理...', () => {
+    //    console.log('处理完成');
+    //});
+}
+
+/**
+ * 创建 WiFi 列表项
+ * @param {Object} wifi - WiFi配置对象
+ * @param {string} type - 列表类型('select'或'manage')
+ * @param {number} index - 列表项索引(可选,用于管理列表)
+ * @returns {HTMLElement} 创建的列表项元素
+ */
+function createWiFiListItem(wifi, type, index = null) {
+    const item = document.createElement('div');
+    item.className = type === 'select' ? 'wifi-select-item' : 'wifi-item';
+    
+    if (type === 'manage') {
+        item.draggable = true;
+        item.dataset.index = index;
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = wifi.name;
+        checkbox.value = wifi.name;
+        item.appendChild(checkbox);
+    }
+
+    // 修改这部分 HTML 结构
+    if (type === 'select') {
+        // 选择列表项的布局
+        item.innerHTML = `
+            <span class="wifi-select-name">${wifi.name}</span>
+            <div class="wifi-select-details">
+                <span class="wifi-band">${wifi.band}</span>
+                <span class="wifi-password">${wifi.encryption === 'none' || wifi.encryption === 'owe' ? '无密码' : '有密码'}</span>
+            </div>
+        `;
+    } else {
+        // 管理列表项的布局
+        const label = document.createElement('label');
+        label.htmlFor = wifi.name;
+        label.innerHTML = `
+            <span class="wifi-name">${wifi.name}</span>
+            <div class="wifi-details">
+                <span class="wifi-band">${wifi.band}</span>
+                <span class="wifi-password">${wifi.encryption === 'none' || wifi.encryption === 'owe' ? '无密码' : '有密码'}</span>
+            </div>
+        `;
+        item.appendChild(label);
+    }
+
+    return item;
+    // 使用示例:
+    //const wifiItem = createWiFiListItem(wifi, 'select');
+}
+
+/**
+ * 处理自动滚动
+ * @param {HTMLElement} container - 滚动容器
+ * @param {number} clientY - 当前鼠标/触摸Y坐标
+ */
+function handleAutoScroll(container, clientY) {
+    const containerRect = container.getBoundingClientRect();
+    const topEdge = containerRect.top;
+    const bottomEdge = containerRect.bottom;
+    
+    clearInterval(autoScrollInterval);
+    
+    const distanceFromTop = clientY - topEdge;
+    const distanceFromBottom = bottomEdge - clientY;
+    
+    let scrollSpeed = 0;
+    
+    // 使用更平滑的加速度计算
+    if (distanceFromTop < SCROLL_THRESHOLD) {
+        const factor = Math.pow(1 - distanceFromTop / SCROLL_THRESHOLD, SCROLL_ACCELERATION);
+        scrollSpeed = -SCROLL_SPEED * factor;
+    } else if (distanceFromBottom < SCROLL_THRESHOLD) {
+        const factor = Math.pow(1 - distanceFromBottom / SCROLL_THRESHOLD, SCROLL_ACCELERATION);
+        scrollSpeed = SCROLL_SPEED * factor;
+    }
+    
+    if (scrollSpeed !== 0) {
+        let lastTimestamp = performance.now();
+        
+        autoScrollInterval = setInterval(() => {
+            const now = performance.now();
+            const deltaTime = now - lastTimestamp;
+            lastTimestamp = now;
+            
+            // 使用 requestAnimationFrame 和时间差来平滑滚动
+            requestAnimationFrame(() => {
+                const smoothScrollSpeed = scrollSpeed * (deltaTime / 16); // 16ms 是理想帧时间
+                container.scrollTop += smoothScrollSpeed;
+                
+                // 添加边界检查
+                if (container.scrollTop <= 0 || 
+                    container.scrollTop >= container.scrollHeight - container.clientHeight) {
+                    clearInterval(autoScrollInterval);
+                }
+            });
+        }, 16);
+    }
+}
+
+/**
+ * 添加拖拽和触摸事件监听器
+ * @param {HTMLElement} item - WiFi列表项元素
+ */
+function addDragAndTouchListeners(item) {
+    // 添加拖拽事件监听器
+    item.addEventListener('dragstart', handleDragStart);
+    item.addEventListener('dragend', handleDragEnd);
+    item.addEventListener('dragover', handleDragOver);
+    item.addEventListener('drop', handleDrop);
+    
+    // 添加触摸事件监听器
+    let pressTimer;
+    let isDragging = false;
+    let startY;
+
+    item.addEventListener('touchstart', (e) => {
+        if (e.target.type === 'checkbox') return;
+        pressTimer = setTimeout(() => {
+            isDragging = true;
+            item.classList.add('dragging');
+            setDraggingState(true);
+            addHapticFeedback('medium'); // 开始拖拽时的触觉反馈
+        }, 1000);// 1秒后开始拖拽
+        startY = e.touches[0].clientY;
+    });
+
+    item.addEventListener('touchend', () => {
+        if (isDragging) {
+            addHapticFeedback('light'); // 放置时的触觉反馈
+        }
+        clearTimeout(pressTimer);
+        setDraggingState(false);
+        clearInterval(autoScrollInterval);
+        isDragging = false;
+        item.classList.remove('dragging');
+    });
+
+    item.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const moveDistance = Math.abs(touch.clientY - startY);
+        // 如果移动距离大于10，则停止拖拽
+        if (moveDistance > 10) {
+            clearTimeout(pressTimer);
+            isDragging = false;
+            item.classList.remove('dragging');
+            return;
+        }
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        // 获取列表容器
+        const container = document.querySelector('.wifi-list');
+        // 处理自动滚动
+        handleAutoScroll(container, touch.clientY);
+        
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const targetItem = target?.closest('.wifi-item');
+        if (targetItem && targetItem !== item) {
+            handleReorder(item, targetItem);
+        }
+    });
+
+    // 添加触摸结束时清除自动滚动
+    item.addEventListener('touchend', () => {
+        clearTimeout(pressTimer);
+        clearInterval(autoScrollInterval);
+        isDragging = false;
+        item.classList.remove('dragging');
+    });
+
+    // 添加鼠标拖拽事件
+    item.addEventListener('dragstart', (e) => {
+        handleDragStart(e);
+        setDraggingState(true);
+        
+        // 获取列表容器
+        const container = document.querySelector('.wifi-list');
+        let localAutoScrollInterval = null; // 使用局部变量
+        
+        // 添加拖拽过程中的鼠标移动监听
+        const handleDragOver = (e) => {
+            e.preventDefault();
+            handleAutoScroll(container, e.clientY);
+        };
+        
+        document.addEventListener('dragover', handleDragOver, { passive: false });
+        
+        // 在拖拽结束时清理
+        const cleanup = () => {
+            document.removeEventListener('dragover', handleDragOver);
+            clearInterval(localAutoScrollInterval);
+        };
+        
+        item.addEventListener('dragend', cleanup, { once: true });
+    });
+
+    item.addEventListener('dragend', (e) => {
+        handleDragEnd(e);
+        setDraggingState(false);
+        clearInterval(autoScrollInterval);
+        // 移除拖拽结束后的鼠标移动监听
+        document.removeEventListener('dragover', handleAutoScroll);
+    });
+
+    // 添加拖拽状态管理
+    function setDraggingState(isDragging) {
+        const container = document.querySelector('.wifi-list');
+        if (isDragging) {
+            container.classList.add('dragging-active');
+        } else {
+            container.classList.remove('dragging-active');
+        }
+    }
+}
+
+/**
+ * 播放点击音效
+ * @returns {Promise} 播放完成的Promise
+ */
+function playClickSound() {
+    const sound = new Audio('click-sound.mp3');
+    sound.currentTime = 0;
+    return sound.play().catch(error => {
+        console.error('音效播放失败:', error);
+    });
+}
+
 
 // 使用提取的函数
 async function validatePassword(event) {
     if (event.key === 'Enter' || event.type === 'click') {
-        playSound(clickSound);
+        playClickSound();
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const password = passwordInput.value;
@@ -188,10 +541,10 @@ function showLoginSuccess() {
     if (loginContainer) {
         loginContainer.classList.add('fade-out');
         setTimeout(() => {
-            hideElement(loginContainer);
+            toggleUI(loginContainer, false, 'element'); // 隐藏登录界面 // 使用通用UI元素显示/隐藏切换函数
             const mainContainer = document.getElementById('mainContainer');
             if (mainContainer) {
-                showElement(mainContainer);
+                toggleUI(mainContainer, true, 'element'); // 显示主界面
                 mainContainer.classList.add('fade-in');
             }
         }, 300);
@@ -205,7 +558,8 @@ async function processWiFiConfigData(callback) {
     if (data) {
         return callback(data.wifi);
     } else {
-        displayErrorMessage('加载 WiFi 列表失败，请稍后重试。');
+        // 显示错误信息
+        showToast('加载 WiFi 列表失败，请稍后重试', 'error');
         return null;
     }
 }
@@ -213,52 +567,41 @@ async function processWiFiConfigData(callback) {
 // 修改显示已知热点选择弹窗的函数
 async function showWiFiSelectDialog() {
     const button = document.querySelector('.wifi-select-button');
-    button.disabled = true; // 禁用按钮
-
+    button.disabled = true;
+    
     try {
         const dialog = document.getElementById('wifiSelectDialog');
         const listContainer = dialog.querySelector('.wifi-select-list');
         
-        // 显示弹窗
-        dialog.classList.remove('hidden');
-        dialog.classList.remove('closing');
+        toggleUI(dialog, true, 'dialog'); // 显示已知热点选择弹窗
         
-        // 获取已知热点列表并加到弹窗中
         const wifiList = await processWiFiConfigData(wifi => wifi);
-        
-        if (!wifiList || wifiList.length === 0) {
-            // 如果没有热点，保持显示空状态提示
-            return;
-        }
-        
-        // 清除空状态提示
-        listContainer.innerHTML = '';
+        // 输出WiFi列表
+        console.log('连接热点页面已知热点列表调试获取WiFi列表:', wifiList);
+        // 如果WiFi列表为空，则返回
+        if (!wifiList || wifiList.length === 0) return;
+
+        // 创建文档片段
+        const fragment = document.createDocumentFragment();
         
         wifiList.forEach(wifi => {
-            const item = document.createElement('div');
-            item.className = 'wifi-select-item';
-            item.setAttribute('data-value', wifi.name);
-            item.innerHTML = `
-                <span class="wifi-select-name">${wifi.name}</span>
-                <div class="wifi-select-details">
-                    <span class="wifi-band">${wifi.band}</span>
-                    <span class="wifi-password">${wifi.encryption === 'none' || wifi.encryption === 'owe' ? '无密码' : '有密码'}</span>
-                </div>
-            `;
-            
-            // 添加点击事件
+            const item = createWiFiListItem(wifi, 'select');
             item.addEventListener('click', () => {
                 selectWiFi(wifi);
                 closeWiFiSelectDialog();
             });
-            
-            listContainer.appendChild(item);
+            fragment.appendChild(item);
         });
+
+        // 清空容器并一次性添加所有元素
+        listContainer.innerHTML = '';
+        listContainer.appendChild(fragment);
+
     } catch (error) {
-        console.error('加载已热点列表失败:', error);
+        console.error('加载已知热点列表失败:', error);
         showToast('加载已知热点列表失败，请重试');
     } finally {
-        button.disabled = false; // 恢复按钮
+        button.disabled = false;
     }
 }
 
@@ -270,14 +613,21 @@ function closeWiFiSelectDialog() {
         setTimeout(() => {
             dialog.classList.add('hidden');
             dialog.classList.remove('closing');
-            // 重置列表内容为默认的空状态
-            dialog.querySelector('.wifi-select-list').innerHTML = `
-                <div class="wifi-empty-state">
-                    <span class="nav-icon">📡</span>
-                    <p>暂无已知热点</p>
-                    <p class="wifi-empty-tip">请先 "手动输入" 添加数据</p>
-                </div>
+            
+            // 使用 DocumentFragment 重置列表内容
+            const fragment = document.createDocumentFragment();
+            const emptyState = document.createElement('div');
+            emptyState.className = 'wifi-empty-state';
+            emptyState.innerHTML = `
+                <span class="nav-icon">📡</span>
+                <p>暂无已知热点</p>
+                <p class="wifi-empty-tip">请先 "手动输入" 添加数据</p>
             `;
+            fragment.appendChild(emptyState);
+            
+            const listContainer = dialog.querySelector('.wifi-select-list');
+            listContainer.innerHTML = '';
+            listContainer.appendChild(fragment);
         }, 300);
     }
 }
@@ -299,7 +649,7 @@ function selectWiFi(wifi) {
             passwordContainer.style.display = 'block';
         }
     } else {
-        // 手动输入清空所有字段
+        // 手动入清空所有字段
         document.getElementById('wifiNameInput').value = '';
         document.getElementById('wifiPwd').value = '';
         document.getElementById('wifiBand').value = '';
@@ -308,123 +658,40 @@ function selectWiFi(wifi) {
     }
 }
 
-// 显示管理已知热点界面
-function showManageWiFi() {
-    // 移除所有导航项的active类
-    document.querySelectorAll('.nav-item').forEach(nav => {
-        nav.classList.remove('active');
-    });
-    // 激活热点管理导航项
-    const manageNavItem = document.querySelector('[data-target="manageContainer"]');
-    if (manageNavItem) {
-        manageNavItem.classList.add('active');
-    }
 
-    // 隐藏所有内容容器
-    document.querySelectorAll('.content-container').forEach(content => {
-        content.classList.remove('active');
-        content.style.display = 'none';
-    });
-
-    // 显示管理界面
-    const manageContainer = document.getElementById('manageContainer');
-    if (manageContainer) {
-        manageContainer.classList.add('active');
-        manageContainer.style.display = 'flex';
-    }
-
-    // 更新WiFi列表(不示加载动画)
-    updateWiFiList();
-}
   
 // 刷新 wifi-config.json 文件的函数，用于显示管理已知热点界面，删除 WiFi 之后刷新列表
 async function updateWiFiList() {
-    console.log("开始更新WiFi列表");
-
     try {
         await processWiFiConfigData((wifiList) => {
             const listContainer = document.getElementById('wifiList');
+            // 输出WiFi列表
+            console.log('热点管理页面调试获取WiFi列表:', wifiList);
             if (!listContainer) {
                 console.error("未找到WiFi列表容器");
                 return;
             }
-            listContainer.innerHTML = ''; // 清空列表
+            
+            // 创建文档片段
+            const fragment = document.createDocumentFragment();
 
             if (!wifiList || wifiList.length === 0) {
-                console.log("WiFi列表为空");
-                listContainer.innerHTML = '<p style="color: #ffd700; text-align: center;">暂无已知热点</p>';
-                return;
+                const emptyTip = document.createElement('p');
+                emptyTip.style.color = '#ffd700';
+                emptyTip.style.textAlign = 'center';
+                emptyTip.textContent = '暂无已知热点';
+                fragment.appendChild(emptyTip);
+            } else {
+                wifiList.forEach((wifi, index) => {
+                    const item = createWiFiListItem(wifi, 'manage', index);
+                    addDragAndTouchListeners(item);
+                    fragment.appendChild(item);
+                });
             }
 
-            const fragment = document.createDocumentFragment();
-            wifiList.forEach((wifi, index) => {
-                const wifiItem = document.createElement('div');
-                wifiItem.className = 'wifi-item';
-                wifiItem.draggable = true; // 保留可拖拽属性
-                wifiItem.dataset.index = index; // 保存原始索引
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = wifi.name;
-                checkbox.value = wifi.name;
-                
-                const label = document.createElement('label');
-                label.htmlFor = wifi.name;
-                label.innerHTML = `
-                    <span class="wifi-name">${wifi.name}</span>
-                    <span class="wifi-details">
-                        <span class="wifi-band">${wifi.band}</span>
-                        <span class="wifi-password">${wifi.encryption === 'none' || wifi.encryption === 'owe' ? '无密码' : '有密码'}</span>
-                    </span>
-                `;
-                
-                wifiItem.appendChild(checkbox);
-                wifiItem.appendChild(label);
-                fragment.appendChild(wifiItem);
-
-                // 添加拖拽相关事件监听器
-                wifiItem.addEventListener('dragstart', handleDragStart);
-                wifiItem.addEventListener('dragend', handleDragEnd);
-                wifiItem.addEventListener('dragover', handleDragOver);
-                wifiItem.addEventListener('drop', handleDrop);
-                
-                // 修改触摸事件处理，直接绑定到 wifiItem
-                let pressTimer;
-                let isDragging = false;
-                let startY;
-
-                wifiItem.addEventListener('touchstart', (e) => {
-                    if (e.target.type === 'checkbox') return; // 如果点击的是复选框则不触发拖拽
-                    pressTimer = setTimeout(() => {
-                        isDragging = true;
-                        wifiItem.classList.add('dragging');
-                        if (navigator.vibrate) {
-                            navigator.vibrate(50);
-                        }
-                    }, 500);
-                    startY = e.touches[0].clientY;
-                });
-
-                wifiItem.addEventListener('touchend', () => {
-                    clearTimeout(pressTimer);
-                    isDragging = false;
-                    wifiItem.classList.remove('dragging');
-                });
-
-                wifiItem.addEventListener('touchmove', (e) => {
-                    if (!isDragging) return;
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                    const targetItem = target.closest('.wifi-item');
-                    if (targetItem && targetItem !== wifiItem) {
-                        handleReorder(wifiItem, targetItem);
-                    }
-                });
-            });
-            
+            // 清空容器并一次性添加所有元素
+            listContainer.innerHTML = '';
             listContainer.appendChild(fragment);
-            console.log("WiFi列表更新完成");
         });
     } catch (error) {
         console.error("更新WiFi列表失败:", error);
@@ -513,6 +780,20 @@ async function handleReorder(draggedItem, targetItem) {
         const [movedItem] = config.wifi.splice(draggedIndex, 1);
         config.wifi.splice(targetIndex, 0, movedItem);
         
+        // 更新DOM
+        const parent = draggedItem.parentNode;
+        if (targetIndex > draggedIndex) {
+            parent.insertBefore(draggedItem, targetItem.nextSibling);
+        } else {
+            parent.insertBefore(draggedItem, targetItem);
+        }
+        
+        // 更新所有项的索引
+        const items = parent.querySelectorAll('.wifi-item');
+        items.forEach((item, index) => {
+            item.dataset.index = index;
+        });
+
         // 保存新的排序
         const saveResponse = await fetch('/cgi-bin/wx/integrated.sh?action=saveOrder', {
             method: 'POST',
@@ -523,23 +804,13 @@ async function handleReorder(draggedItem, targetItem) {
         });
         
         if (saveResponse.ok) {
-            // 更新DOM
-            const parent = draggedItem.parentNode;
-            if (targetIndex > draggedIndex) {
-                parent.insertBefore(draggedItem, targetItem.nextSibling);
-            } else {
-                parent.insertBefore(draggedItem, targetItem);
-            }
-            
-            // 更新所有项的索引
-            const items = parent.querySelectorAll('.wifi-item');
-            items.forEach((item, index) => {
-                item.dataset.index = index;
-            });
-            
             showToast('排序已保存', 'success');
+            // 保存之后刷新一下当前页面
+            await updateWiFiList();
         } else {
             showToast('保存排序失败', 'error');
+            // 保存失败之后刷新一下当前页面
+            await updateWiFiList();
         }
     } catch (error) {
         console.error('保存排序失败:', error);
@@ -565,14 +836,7 @@ function showDeleteConfirmDialog() {
 
 // 关闭删除确认弹窗
 function closeDeleteConfirmDialog() {
-    const dialog = document.getElementById('deleteConfirmDialog');
-    if (dialog) {
-        dialog.classList.add('closing');
-        setTimeout(() => {
-            dialog.classList.add('hidden');
-            dialog.classList.remove('closing');
-        }, 300);
-    }
+    closeDialogById('deleteConfirmDialog');
 }
 
 // 确认删除操作
@@ -586,8 +850,7 @@ async function confirmDelete() {
     try {
         // 移除显示加载动画的代码
         // showLoading();
-        // setLoadingText(`正在删除 ${namesToDelete.length} 个热点...`);
-        
+        //toggleLoading(true, `正在删除 ${namesToDelete.length} 个热点...`);
         // 添加删除图标动画类
         const deleteIcon = document.querySelector('.delete-icon');
         deleteIcon.classList.add('deleting');
@@ -613,11 +876,11 @@ async function confirmDelete() {
         console.error('删除请求失败:', error);
         showToast('删除失败，请重试');
     } finally {
+        // 隐藏加载态 
+        toggleLoading(false);
         // 移除删除图标动画类
         const deleteIcon = document.querySelector('.delete-icon');
         deleteIcon.classList.remove('deleting');
-        // hideLoading();
-        // setLoadingText();
         deleteButton.disabled = false;
         closeDeleteConfirmDialog();
     }
@@ -625,7 +888,7 @@ async function confirmDelete() {
 
 // 修改原有的 deleteSelectedWiFi 函数
 function deleteSelectedWiFi() {
-    playSound(clickSound);
+    playClickSound();
     showDeleteConfirmDialog();
 }
   
@@ -648,7 +911,7 @@ function isConfigInputValid() {
         return false;
     }
 
-    // 根据加密方式检查密码
+    // 加密方式检查密码
     if (encryption !== 'none' && encryption !== 'owe') {
         if (!wifiPwd) {
             showToast('请输入WiFi密码');
@@ -667,37 +930,11 @@ function isConfigInputValid() {
     }
     return true;
 }
-  
-// 显示保存确认弹窗
-function showSaveConfirmDialog(wifiConfig) {
-    const dialog = document.getElementById('saveConfirmDialog');
-    if (dialog) {
-        // 填充确认信息
-        document.getElementById('confirmSSID').textContent = wifiConfig.name;
-        document.getElementById('confirmEncryption').textContent = 
-            wifiConfig.encryption === 'none' || wifiConfig.encryption === 'owe' ? '无加密 (开放网络)' :
-            wifiConfig.encryption === 'psk2' ? 'WPA2-PSK (强安全性)' :
-            wifiConfig.encryption === 'sae' ? 'WPA3-SAE (强安全性)' :
-            wifiConfig.encryption === 'psk' ? 'WPA-PSK (弱安全性)' : '未知';
-        document.getElementById('confirmKey').textContent = wifiConfig.password || '未加密';
-        document.getElementById('confirmBand').textContent = wifiConfig.band;
-        
-        dialog.classList.remove('hidden');
-        // 重置可能存在的关闭动画类
-        dialog.classList.remove('closing');
-    }
-}
 
-// 关闭保存确认弹窗
-function closeSaveConfirmDialog() {
-    playSound(clickSound); // 使用提取的音效函数
-    const dialog = document.getElementById('saveConfirmDialog');
-    closeDialog(dialog); // 使用提取的关闭弹窗函数
-}
 
 // 修改保存配置函数
 async function saveConfig() {
-    playSound(clickSound);
+    playClickSound();
     // WIFI名、加密类型、密码是否有效，无效则直接返回
     if (!isConfigInputValid()) {
         return;
@@ -705,41 +942,26 @@ async function saveConfig() {
 
     // 获取当前配置的接口名称 
     const currentInterface = document.getElementById('currentInterface').textContent;
-    // 检查接口名称是否包含"不存在"或为空
+    // 检查接口名称是否包含"不存在"或空
     console.log('接口名称：', currentInterface);
     if (!currentInterface || currentInterface.includes('不存在')) {
-        alert('未获取到有效的中继接口，无法执行中继');
+        showToast('未获取到有效的中继接口，无法执行中继', 'error');
         return;
     }
 
-    // 显示确认弹窗
-    const dialog = document.getElementById('configSaveConfirmDialog');
-    if (dialog) {
-        dialog.classList.remove('hidden');
-        dialog.classList.remove('closing');
-    }
+    // 使用统一的弹窗显示函数
+    toggleUI(document.getElementById('configSaveConfirmDialog'), true, 'dialog');
+
 }
+
 
 // 关闭配置保存确认弹窗
 function closeConfigSaveConfirmDialog() {
-    const dialog = document.getElementById('configSaveConfirmDialog');
-    if (dialog) {
-        dialog.classList.add('closing');
-        setTimeout(() => {
-            dialog.classList.add('hidden');
-            dialog.classList.remove('closing');
-            // 重置弹窗状态
-            const initialState = dialog.querySelector('.confirm-initial');
-            const loadingState = dialog.querySelector('.confirm-loading');
-            initialState.classList.remove('hidden');
-            loadingState.classList.add('hidden');
-        }, 300);
-    }
+    closeDialogById('configSaveConfirmDialog', true);
 }
 
 // 开始保存配置流程
 async function startConfigSave() {
-    // 获取弹窗元素
     const dialog = document.getElementById('configSaveConfirmDialog');
     const initialState = dialog.querySelector('.confirm-initial');
     const loadingState = dialog.querySelector('.confirm-loading');
@@ -747,7 +969,6 @@ async function startConfigSave() {
     const progressStatus = dialog.querySelector('.progress-status');
 
     try {
-        // 切换到加载状态
         initialState.classList.add('hidden');
         loadingState.classList.remove('hidden');
 
@@ -764,11 +985,9 @@ async function startConfigSave() {
             band: wifiBand
         };
 
-        // 同时启动倒计时和发送请求
-        const [saveResult] = await Promise.all([
+        await Promise.all([
             // 发送保存和配置请求
             (async () => {
-                // 发送保存请求
                 const saveResponse = await fetch('/cgi-bin/wx/integrated.sh?action=save', {
                     method: 'POST',
                     headers: {
@@ -778,11 +997,10 @@ async function startConfigSave() {
                 });
 
                 if (!saveResponse.ok) {
-                    throw new Error('保存配置失败，请重试');
+                    throw new Error('保存热点JSON配置失败，请重试');
                 }
                 console.log('WiFi 写入JSON配置成功');
 
-                // 发送配置请求
                 const configResponse = await fetch('/cgi-bin/wx/integrated.sh?action=config', {
                     method: 'POST',
                     headers: {
@@ -792,50 +1010,43 @@ async function startConfigSave() {
                 });
 
                 if (!configResponse.ok) {
-                    throw new Error('应用配置失败，请重试');
+                    throw new Error('保存热点失败，请重试');
                 }
-                console.log('WiFi UCI配置请求完成');
+                console.log('热点UCI配置保存完成');
+
             })(),
 
-            // 倒计时逻辑
+            // 使用通用倒计时函数
             new Promise(resolve => {
-                let countdown = 60;
-                countdownElement.textContent = countdown;
-                const timer = setInterval(() => {
-                    countdown--;
-                    countdownElement.textContent = countdown;
-                    
-                    // 更新进度提示
-                    if (countdown <= 55) {
-                        progressStatus.textContent = 'WiFi正在重启...';
+                startCountdown({
+                    duration: 60,
+                    countdownElement,
+                    progressElement: progressStatus,
+                    progressTexts: {
+                        start: 'WiFi正在重启...',
+                        middle: '等待WIFI重新连接...',
+                        end: '即将刷新连接状态...'
+                    },
+                    onComplete: () => {
+                        closeConfigSaveConfirmDialog(); // 关闭配置保存确认弹窗
+                        showToast('热点已更新', 'success'); // 显示成功提示
+                        // 延迟500ms后再跳转,让用户能看到提示
+                        setTimeout(() => {
+                            const statusNavItem = document.querySelector('.nav-item[data-target="statusContainer"]'); // 获取连接状态导航项
+                            // 如果导航项存在，则触发点击事件切换到连接状态页面
+                            if (statusNavItem) {
+                                statusNavItem.click(); // 触发导航切换到连接状态页面
+                            }
+                        }, 500); // 延迟500ms
+                        
+                        resolve(); // 完成Promise
                     }
-                    if (countdown <= 30) {
-                        progressStatus.textContent = '等待WIFI重新连接...';
-                    }
-                    if (countdown <= 5) {
-                        progressStatus.textContent = '即将跳转到连接状态...';
-                    }
-                    
-                    if (countdown <= 0) {
-                        clearInterval(timer);
-                        // 关闭确认弹窗
-                        closeConfigSaveConfirmDialog();
-                        // 切换到连接状态页面
-                        const statusNavItem = document.querySelector('[data-target="statusContainer"]');
-                        if (statusNavItem) {
-                            // 触发点击事件(这会自动获取最新状态)
-                            statusNavItem.click();
-                        }
-                        showToast('配置已更新', 'success');
-                        resolve();
-                    }
-                }, 1000);
+                });
             })
         ]);
-
     } catch (error) {
-        console.error('发送保存请求失败:', error);
-        showToast('发送保存请求失败', 'error');
+        console.error('保存热点失败:', error);
+        showToast('保存热点失败，请重试', 'error');
         closeConfigSaveConfirmDialog();
     }
 }
@@ -843,11 +1054,12 @@ async function startConfigSave() {
 // 获取当前中继配置状态
 async function fetchCurrentConfig() {
     // 显示加载动画
-    showLoading();
-    setLoadingText('加载配置中...'); // 设置专门加载文本
+    toggleLoading(true, '加载配置中...');
     
     try {
         const data = await fetchData('/cgi-bin/wx/integrated.sh?action=getconfig');
+        // 输出data
+        console.log("连接状态页面调试data:", data);
         if (data) {
             document.getElementById('currentSSID').textContent = data.ssid;
             // 改密码显示 - 统一显示emoji
@@ -871,11 +1083,11 @@ async function fetchCurrentConfig() {
             if (data.bridge_status.includes('连接成功')) {
                 bridgeStatus.innerHTML = `<span class="status-tag status-connected">${data.bridge_status}</span>`;
             } else {
-                // 显示"连接失败"加上WiFi名称
+                // 显示"连失败"加上WiFi名称
                 bridgeStatus.innerHTML = `<span class="status-tag status-disconnected">连接失败 ${data.ssid}</span>`;
             }
             
-            // 修改网络显示，添加标记样式
+            // 修改络显示，添加标记样式
             const networkStatus = document.getElementById('currentnetworkstatus');
             if (data.network_status === '连接成功') {
                 networkStatus.innerHTML = `<span class="status-tag status-connected">连接成功</span>`;
@@ -883,7 +1095,6 @@ async function fetchCurrentConfig() {
                 networkStatus.innerHTML = `<span class="status-tag status-disconnected">连接失败</span>`;
             }
             
-            console.log("获取当前中继 WiFi 状态");
         } else {
             console.error("获取当前中继配置状态失败");
             showToast('获取配置失败，请检查中继模式是否已设置', 'error');
@@ -893,35 +1104,13 @@ async function fetchCurrentConfig() {
         showToast('获取配置失败，请检查络连接', 'error');
     } finally {
         // 无论成功还是失败，都隐藏加载动画
-        hideLoading();
-        setLoadingText(); // 重置为默认文本
+        toggleLoading(false);
     }
 }
-// 显示自动切换面
-function showAutoSwitchPage() {
-      const autoSwitchPage = document.getElementById('autoSwitchPage');
-      const configContainer = document.getElementById('configContainer');
-      const manageContainer = document.getElementById('manageContainer');
-      const successMessage = document.getElementById('successMessage');
-  
-      if (autoSwitchPage) {
-          autoSwitchPage.style.display = 'flex';
-          const statusElement = document.getElementById('autoSwitchStatus');
-          statusElement.textContent = '';
-      }
-      if (configContainer) {
-          configContainer.style.display = 'none';
-      }
-      if (manageContainer) {
-          manageContainer.style.display = 'none';
-      }
-      if (successMessage) {
-          successMessage.style.display = 'none';
-      }
-}  
+
   
 async function startAutoSwitch() {
-    playSound(clickSound);
+    playClickSound();
     const statusElement = document.getElementById('autoSwitchStatus');
     
     // 清空状态并添加控制按钮
@@ -962,7 +1151,7 @@ async function startAutoSwitch() {
     } catch (error) {
         console.error('切换错误:', error);
         appendLog("------------------------", 'info');
-        appendLog('⚠️ 已断开连接，请等待重新连接...', 'warning');
+        appendLog('⚠️ 已断开连接，请等待重新连...', 'warning');
         appendLog('⚠️ 如1分钟后仍未恢复连接，手动连接并刷新页面', 'warning');
         appendLog('❌ 自动切换WiFi运行异常结束', 'error');
     }
@@ -981,7 +1170,7 @@ function showTimerDialog() {
 
 // 关闭定时器设置弹窗
 function closeTimerDialog() {
-    playSound(clickSound); // 使用提取的音效函数
+    playClickSound(); // 使用提取的音效函数
     const dialog = document.getElementById('timerDialog');
     if (dialog) {
         dialog.classList.add('closing');
@@ -994,7 +1183,7 @@ function closeTimerDialog() {
 
 // 确认定时器设置
 async function confirmTimer() {
-    playSound(clickSound); // 使用提取的音效函数
+    playClickSound(); // 使用提取的音效函数
     const intervalInput = document.getElementById('timerInterval');
     const statusElement = document.getElementById('autoSwitchStatus');
     const interval = intervalInput.value;
@@ -1040,14 +1229,14 @@ async function confirmTimer() {
 
 // 修改自切换定时函数
 function autoSwitchTimer() {
-    //playSound(clickSound); // 添加音效
+    //playClickSound(); // 添加音效
     showTimerDialog();
 }
 
 document.getElementById('encryption').addEventListener('change', function () {
     const encryptionType = this.value;
     const passwordContainer = document.getElementById('passwordContainer');
-    // 检查选择的密类型，隐藏或显示密码输入
+    // 检查选择的密类型，隐藏或显示密码入
     if (encryptionType === 'none' || encryptionType === 'owe') {
         // 如果是无加密类，隐藏密码输入框
         passwordContainer.style.display = 'none';
@@ -1066,7 +1255,7 @@ document.getElementById('saveButton').addEventListener('click', saveConfig);
 // 初始化时根据默认选择隐藏密码框（可选）
 document.getElementById('encryption').dispatchEvent(new Event('change'));
 
-// 添加重置输入表单的函数
+// 加重置输入表单函数
 function resetConfigForm() {
     // 重置WiFi名称输入框
     const wifiNameInput = document.getElementById('wifiNameInput');
@@ -1074,7 +1263,7 @@ function resetConfigForm() {
         wifiNameInput.value = '';
     }
 
-    // 重置安全性选择框
+    // 重置安全性选择
     const encryption = document.getElementById('encryption');
     if (encryption) {
         encryption.value = 'none';  // 重置为默认值
@@ -1099,13 +1288,25 @@ function resetConfigForm() {
     }
 }
 
-// 合并所的 DOMContentLoaded 事件处理
-document.addEventListener('DOMContentLoaded', function() {
-    // 导航切换处理
+// 合并所有的 DOMContentLoaded 事件处理
+document.addEventListener('DOMContentLoaded', async function() {
+    // 检查是否已设置密码
+    const isPasswordSet = await checkPasswordSet();
+    const loginTitle = document.getElementById('loginTitle');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    if (!isPasswordSet) {
+        loginTitle.textContent = '首次使用请设置密码';
+        password.placeholder = '请输入密码(至少6位)';
+        confirmPassword.classList.remove('hidden');
+    }
+
+    // 初始化导航切换
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', async function() {
-            playSound(clickSound);
+            playClickSound();
             navItems.forEach(nav => nav.classList.remove('active'));
             this.classList.add('active');
 
@@ -1159,33 +1360,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 动切换提示理
-    const tips = [
-        "自动切换会断开WiFi连接，输出错误是正常的",
-        "自动/定时模式，都需要有 2+ 已知热点",
-        "程序只支持设备是\"中继模式\"下运行",
-        "定时检测模式，输入 0 则是关闭",
-        "定时检测模式，断网后会切换热点",
-        "PC端有线连接路由器自动切换不会报错",
-        "连接状态，点一次刷新一次",
-        "连接状态，热点连接成功，状态连接成功",
-        "连接状态，网络正常，网络连接成功",
-        "连接失败，可能是密码、频段、安全性不对",
-        "uhttpd默认60秒超时",
-        "前端操作只能执行60秒就被强制结束",
-        "修改uhttpd超时时间，可ssh执行一下",
-        "uci set uhttpd.main.script_timeout='600'"
-    ];
-    let currentTipIndex = 0;
-    const tipElement = document.getElementById('autoSwitchTip');
-
-    function showNextTip() {
-        currentTipIndex = (currentTipIndex + 1) % tips.length;
-        tipElement.innerHTML = tips[currentTipIndex].replace(/\n/g, '<br>');
-    }
-
-    setInterval(showNextTip, 3000); // 每3秒切换一次
-
     // 确保登录容器显示，主容器和成功消息隐藏
     const loginContainer = document.getElementById('loginContainer');
     const mainContainer = document.getElementById('mainContainer');
@@ -1204,75 +1378,15 @@ document.addEventListener('DOMContentLoaded', function() {
     initStatusSelectHandlers();
 });
 
-// 显示成功弹窗
-function showSuccessDialog(wifiConfig) {
-    const dialog = document.getElementById('successDialog');
-    if (dialog) {
-        document.getElementById('successSSID').textContent = wifiConfig.name;
-        document.getElementById('successEncryption').textContent = { 
-            'none': '无加密 (开放网络)', 
-            'owe': '无加密 (开放网络)', 
-            'psk2': 'WPA2-PSK (强安全性)', 
-            'sae': 'WPA3-SAE (强安全性)', 
-            'psk': 'WPA-PSK (弱安全性)' 
-        }[wifiConfig.encryption] || '未知';
-        document.getElementById('successKey').textContent = wifiConfig.password || '未加密';
-        document.getElementById('successBand').textContent = wifiConfig.band.toUpperCase();
-        
-        dialog.classList.remove('hidden');
-        // 重置可能存在的关闭动画类
-        dialog.classList.remove('closing');
-    }
-}
-
-// 关闭成功弹并返配置
-function closeSuccessDialog() {
-    const dialog = document.getElementById('successDialog');
-    if (dialog) {
-        dialog.classList.add('closing');
-        setTimeout(() => {
-            dialog.classList.add('hidden');
-            dialog.classList.remove('closing');
-            
-            // 移除所有导航项的active类
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            
-            // 激活"当前配置"导航
-            const statusNavItem = document.querySelector('[data-target="statusContainer"]');
-            if (statusNavItem) {
-                statusNavItem.classList.add('active');
-            }
-            
-            // 隐藏所有内容容器
-            document.querySelectorAll('.content-container').forEach(content => {
-                content.classList.remove('active');
-                content.style.display = 'none';
-            });
-            
-            // 显示"当前配置"容器并刷新状态
-            const statusContainer = document.getElementById('statusContainer');
-            if (statusContainer) {
-                statusContainer.classList.add('active');
-                statusContainer.style.display = 'flex';
-            }
-            
-            playSound(clickSound); // 使用提取的音效函数
-            // 只刷新当前配置信息
-            fetchCurrentConfig();
-        }, 300);
-    }
-}
 
 // 添加点击 emoji 效果
 document.addEventListener('DOMContentLoaded', function() {
     // emoji 数组
-    const emojis = ['🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐','🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔','🎠','😀','😃','😄','😁','😆','😅','🤣','😊','😚','😗','😘','😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑','🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺','😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌','😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤','😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈','🤩','🤒','😷','🤧','🤪','👻','😉','🐽','🥰','🤖','🥹','😺','😸','😹','🤭','😭','🫣','😾','😿','😽','😼','😻','❤','💖','💕','🐶','🐐','🦢','🤓','😘','🥱','🌞','💩','🤣','🥺','🥳','🥴','🥵','🥶','🥸','🥿','🦊','🦋','🦄','🦅','🦆','🦉','🦍','🦈','🦝','🦚','🦜','🦢','🦩','🦫','🦭','🧸','💝','💗','💓','💞','💘','💝','💟','💌','💋','💔','💜','🧡','💛','💚','💙','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕊','💐','🌸','🌺','🌼','🌻','🌹','🥀','🌷','🌱','🎋'];
+    const emojis = ['🐁','🐂','🐖','🐅','🦁','🐔','🐉','🌟','✨','💫','⭐','🍎','🍅','🎂','👍','😀','😁','🌕️','🌜','🤪','🤗','🤔','🎠','😀','😄','😁','😆','😅','🤣','😊','😚','😗','😘','😍','😌','😉','🤗','🙂','😇','😋','😜','😝','😛','🤑','🤗','😎','🤡','🤠','😖','😣','🐷','😎','😕','😴','😺','😬','😒','😏','😫','😩','😤','😠','😡','😶','😐','💌','😯','😦','😥','😢','😨','😱','😵','😲','😮','😦','🤤','😭','😪','😴','🙄','😬','🤥','🤐','👺','🫡','🤫','😈','🤩','🤒','🤧','🤪','👻','😉','🐽','🥰','🤖','🥹','😺','😸','😹','🤭','😭','🫣','','😿','😽','😼','😻','❤','💖','💕','🐶','🐐','🦢','🤓','😘','🥱','🌞',,'🤣','🥺','🥳','🥴','🥵','🥶','🥸','🥿','🦊','🦋','🦄','🦅','🦆','🦉','🦍','🦈','🦝',,'🦜','🦢','🦩','🦫','🦭','🧸','💝','💗','💓','💞','💘','💝','💟','💌','💋','💔','💜','🧡','💛','💚','💙','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕊','💐','🌸','🌺','🌼','🌻','🌹','🥀','🌷','🌱','🎋'];
     
     // 添加点击事件监听器，但排除label和input元素
     document.addEventListener('click', function(e) {
-        // 如果点击的是复选框label、input或select素，则不创建emoji
+        // 如果点击的是复选label、input或select素，则不创建emoji
         if (e.target.type === 'checkbox' || 
             e.target.tagName.toLowerCase() === 'label' || 
             e.target.tagName.toLowerCase() === 'input' ||
@@ -1314,27 +1428,6 @@ function togglePassword(element) {
     }
 }
 
-// 添加迟显示加载动画的能
-let loadingTimer;
-
-function showLoading() {
-    // 清除可能存在的定时器
-    if (loadingTimer) {
-        clearTimeout(loadingTimer);
-    }
-    // 延迟 100ms 显示加载动画，避免操作太快时的烁
-    loadingTimer = setTimeout(() => {
-        document.getElementById('loadingSpinner').classList.remove('hidden');
-    }, 100);
-}
-
-function hideLoading() {
-    // 清除定时器
-    if (loadingTimer) {
-        clearTimeout(loadingTimer);
-    }
-    document.getElementById('loadingSpinner').classList.add('hidden');
-}
 
 document.addEventListener('DOMContentLoaded', function() {
     const tips = [
@@ -1345,7 +1438,7 @@ document.addEventListener('DOMContentLoaded', function() {
         "定时检测模式，断网后会切换热点",
         "PC端有线连接路由器自动切换不会报错",
         "连接状态，点一次刷新一次",
-        "连接状态，热点连接成功，状态连接成功",
+        "连接状态，连接热点成功，状态连接成功",
         "连接状态，网络正常，网络连接成功",
         "连接失败，可能是密码、频段、安全性不对",
         "uhttpd默认60秒超时",
@@ -1386,13 +1479,6 @@ function showToast(message, type = 'error') {
     }, 2000);
 }
 
-// 添加一个函数来设置加载文本
-function setLoadingText(text = '处理中...') {
-    const loadingText = document.querySelector('.loading-text');
-    if (loadingText) {
-        loadingText.textContent = text;
-    }
-}
 
 // 监听输入框聚焦事件，调整页面滚动
 document.getElementById('wifiPwd').addEventListener('focus', function() {
@@ -1520,9 +1606,8 @@ let initialWirelessSettings = {
  */
 async function fetchWirelessSettings() {
     try {
-        showLoading();
-        setLoadingText('无线设置加载中...');
-
+        // 显示加载状态
+        toggleLoading(true, '无线设置加载中...');
         // 先清空所有输入框和选择框的值
         clearWirelessSettings();
 
@@ -1532,7 +1617,9 @@ async function fetchWirelessSettings() {
             throw new Error('获取无线设置失败');
         }
         const data = await response.json();
-        
+        //输出获取到的数据
+        console.log("无线设置页面调data:", data);
+
         // 保存初始状态,转换布尔值为字符串
         initialWirelessSettings = {
             disabled_2g: data.disabled_2g === "true" ? "1" : "0",
@@ -1575,8 +1662,8 @@ async function fetchWirelessSettings() {
     } catch (error) {
         showToast('获取无线设置失败: ' + error.message);
     } finally {
-        hideLoading();
-        setLoadingText();
+        // 隐藏加载状态
+        toggleLoading(false);
     }
 }
 
@@ -1622,7 +1709,7 @@ function clearWirelessSettings() {
  */
 async function saveWirelessSettings() {
     // 点击音效
-    playSound(clickSound);
+    playClickSound();
     // 验证设置
     if (!validateWirelessSettings()) {
         return;
@@ -1682,19 +1769,7 @@ async function saveWirelessSettings() {
  * 关闭无线设置保存确认弹窗
  */
 function closeWirelessSaveConfirmDialog() {
-    const dialog = document.getElementById('wirelessSaveConfirmDialog');
-    if (dialog) {
-        dialog.classList.add('closing');
-        setTimeout(() => {
-            dialog.classList.add('hidden');
-            dialog.classList.remove('closing');
-            // 重置弹窗状态
-            const initialState = dialog.querySelector('.confirm-initial');
-            const loadingState = dialog.querySelector('.confirm-loading');
-            initialState.classList.remove('hidden');
-            loadingState.classList.add('hidden');
-        }, 300);
-    }
+    closeDialogById('wirelessSaveConfirmDialog', true);
 }
 
 /**
@@ -1815,26 +1890,23 @@ function initStatusSelectHandlers() {
     }
 }
 
-// 开始保存无线设置流程
+// 开始保存无线设流程
 async function startWirelessSave() {
-    // 获取弹窗元素
     const dialog = document.getElementById('wirelessSaveConfirmDialog');
     const initialState = dialog.querySelector('.confirm-initial');
     const loadingState = dialog.querySelector('.confirm-loading');
     const countdownElement = document.getElementById('countdownTimer');
     const progressStatus = dialog.querySelector('.progress-status');
-    
+
     try {
-        // 切换到加载状态
         initialState.classList.add('hidden');
         loadingState.classList.remove('hidden');
 
         // 获取变更数据
         const changes = JSON.parse(dialog.dataset.changes);
 
-        // 同时启动倒计时和发送请求
-        const [saveResult] = await Promise.all([
-            // 发送保存请
+        await Promise.all([
+            // 发送保存请求
             (async () => {
                 const response = await fetch('/cgi-bin/wx/integrated.sh?action=savewireless', {
                     method: 'POST',
@@ -1850,71 +1922,44 @@ async function startWirelessSave() {
                 console.log('保存无线设置UCI请求已发送，WiFi即将重启');
             })(),
 
-            // 倒计时逻辑
+            // 使用通用倒计时函数
             new Promise(resolve => {
-                let countdown = 60;
-                countdownElement.textContent = countdown;
-                
-                const timer = setInterval(() => {
-                    countdown--;
-                    countdownElement.textContent = countdown;
-                    
-                    // 更新进度提示
-                    if (countdown <= 55) {
-                        progressStatus.textContent = 'WiFi正在重启...';
-                    }
-                    if (countdown <= 30) {
-                        progressStatus.textContent = '等待WIFI重新连接...';
-                    }
-                    if (countdown <= 5) {
-                        progressStatus.textContent = '即将刷新设置状态...';
-                    }
-                    
-                    if (countdown <= 0) {
-                        clearInterval(timer);
-                        // 尝试获取新设置
+                startCountdown({
+                    duration: 60,
+                    countdownElement,
+                    progressElement: progressStatus,
+                    progressTexts: {
+                        start: 'WiFi正在重启...',
+                        middle: '等待WIFI重新连接...',
+                        end: '即将刷新设状态...'
+                    },
+                    onComplete: () => {
+                        // 获取最新设置
                         fetchWirelessSettings()
                             .then(() => {
                                 closeWirelessSaveConfirmDialog();
                                 showToast('设置已更新', 'success');
+                                resolve();
                             })
                             .catch(error => {
-                                console.log('重新获取设置失败:', error);
+                                console.error('获取设置失败:', error);
                                 closeWirelessSaveConfirmDialog();
-                                showToast('无法获取最新无线状态，请手动刷新', 'error');
+                                showToast('无法获取最新状态，请手动刷新', 'error');
+                                resolve();
                             });
-                        resolve();
                     }
-                }, 1000);
+                });
             })
         ]);
-
     } catch (error) {
-        console.error('发送保存请求失败:', error);
-        showToast('发送保存请求失败', 'error');
+        console.error('保存设置失败:', error);
+        showToast('保存设置失败，请重试', 'error');
         closeWirelessSaveConfirmDialog();
     }
 }
 
-// 更新关闭弹窗函数
-function closeWirelessSaveConfirmDialog() {
-    const dialog = document.getElementById('wirelessSaveConfirmDialog');
-    if (dialog) {
-        dialog.classList.add('closing');
-        setTimeout(() => {
-            dialog.classList.add('hidden');
-            dialog.classList.remove('closing');
-            // 重置弹窗状态
-            const initialState = dialog.querySelector('.confirm-initial');
-            const loadingState = dialog.querySelector('.confirm-loading');
-            initialState.classList.remove('hidden');
-            loadingState.classList.add('hidden');
-        }, 300);
-    }
-}
 
 // 在文件开头添加密码验证相关函数
-
 // 检查是否已设置密码
 async function checkPasswordSet() {
     try {
@@ -1952,25 +1997,10 @@ async function createPassword(password) {
     }
 }
 
-// 在文件开头添加初始化函数
-document.addEventListener('DOMContentLoaded', async function() {
-    // 检查是否已设置密码
-    const isPasswordSet = await checkPasswordSet();
-    const loginTitle = document.getElementById('loginTitle');
-    const password = document.getElementById('password');
-    const confirmPassword = document.getElementById('confirmPassword');
-    
-    if (!isPasswordSet) {
-        loginTitle.textContent = '首次使用请设置密码';
-        password.placeholder = '请输入密码(至少6位)';
-        confirmPassword.classList.remove('hidden');
-    }
-});
-
 // 显示修改密码弹窗
 function showChangePasswordDialog() {
     const dialog = document.getElementById('changePasswordDialog');
-    showDialog(dialog);
+    toggleUI(dialog, true, 'dialog');
     // 清空输入框
     document.getElementById('oldPassword').value = '';
     document.getElementById('newPassword').value = '';
@@ -1979,8 +2009,7 @@ function showChangePasswordDialog() {
 
 // 关闭修改密码弹窗
 function closeChangePasswordDialog() {
-    const dialog = document.getElementById('changePasswordDialog');
-    closeDialog(dialog);
+    closeDialogById('changePasswordDialog');
 }
 
 // 提交修改密码
@@ -2032,13 +2061,12 @@ async function submitChangePassword() {
 // 确认重启系统
 function confirmReboot() {
     const dialog = document.getElementById('rebootConfirmDialog');
-    showDialog(dialog);
+    toggleUI(dialog, true, 'dialog');
 }
 
 // 关闭重启确认弹窗
 function closeRebootConfirmDialog() {
-    const dialog = document.getElementById('rebootConfirmDialog');
-    closeDialog(dialog);
+    closeDialogById('rebootConfirmDialog');
 }
 
 // 开始重启系统
@@ -2050,12 +2078,10 @@ async function startReboot() {
     const progressStatus = dialog.querySelector('.progress-status');
     
     try {
-        // 切换到加载状态
         initialState.classList.add('hidden');
         loadingState.classList.remove('hidden');
 
-        // 同时启动倒计时和发送请求
-        const [rebootResult] = await Promise.all([
+        await Promise.all([
             // 发送重启请求
             (async () => {
                 const response = await fetch('/cgi-bin/wx/integrated.sh?action=rebootSystem');
@@ -2069,35 +2095,24 @@ async function startReboot() {
                 console.log('重启请求已发送，系统即将重启');
             })(),
 
-            // 倒计时逻辑
+            // 使用通用倒计时函数
             new Promise(resolve => {
-                let countdown = 80;
-                countdownElement.textContent = countdown;
-                
-                const timer = setInterval(() => {
-                    countdown--;
-                    countdownElement.textContent = countdown;
-                    
-                    // 更新进度提示
-                    if (countdown <= 55) {
-                        progressStatus.textContent = '系统正在重启...';
-                    }
-                    if (countdown <= 30) {
-                        progressStatus.textContent = '等待系统重新启动...';
-                    }
-                    if (countdown <= 5) {
-                        progressStatus.textContent = '即将刷新页面...';
-                    }
-                    
-                    if (countdown <= 0) {
-                        clearInterval(timer);
-                        window.location.reload(); // 重新加载页面
+                startCountdown({
+                    duration: 80,
+                    countdownElement,
+                    progressElement: progressStatus,
+                    progressTexts: {
+                        start: '系统正在重启...',
+                        middle: '等待系统重新启动...',
+                        end: '即将刷新页面...'
+                    },
+                    onComplete: () => {
+                        window.location.reload();
                         resolve();
                     }
-                }, 1000);
+                });
             })
         ]);
-
     } catch (error) {
         console.error('重启系统失败:', error);
         showToast('重启系统失败，请重试', 'error');
@@ -2105,3 +2120,120 @@ async function startReboot() {
     }
 }
 
+// 在拖拽开始和放置时添加触觉反馈
+function addHapticFeedback(intensity = 'medium') {
+    if (!window.navigator.vibrate) return;
+    
+    switch (intensity) {
+        case 'light':
+            navigator.vibrate(20);
+            break;
+        case 'medium':
+            navigator.vibrate(40);
+            break;
+        case 'strong':
+            navigator.vibrate([40, 30, 40]);
+            break;
+    }
+}
+
+// 显示更新确认弹窗
+function confirmUpdate() {
+    playClickSound();
+    const dialog = document.getElementById('updateConfirmDialog');
+    toggleUI(dialog, true, 'dialog');
+}
+
+// 关闭更新确认弹窗
+function closeUpdateConfirmDialog() {
+    const dialog = document.getElementById('updateConfirmDialog');
+    const initialState = dialog.querySelector('.confirm-initial');
+    const loadingState = dialog.querySelector('.confirm-loading');
+    const progressTips = loadingState.querySelector('.progress-tips');
+    
+    // 重置弹窗状态
+    initialState.classList.remove('hidden');
+    loadingState.classList.add('hidden');
+    progressTips.innerHTML = ''; // 清空输出
+    
+    // 关闭弹窗
+    closeDialogById('updateConfirmDialog');
+}
+
+// 开始更新系统
+async function startUpdate() {
+    const dialog = document.getElementById('updateConfirmDialog');
+    const initialState = dialog.querySelector('.confirm-initial');
+    const loadingState = dialog.querySelector('.confirm-loading');
+    const progressStatus = dialog.querySelector('.progress-status');
+    const progressTips = loadingState.querySelector('.progress-tips');
+    
+    try {
+        // 1. 切换到加载状态
+        initialState.classList.add('hidden');
+        loadingState.classList.remove('hidden');
+        
+        // 2. 显示检查更新状态
+        progressStatus.textContent = '正在检查更新...';
+        progressTips.innerHTML = '<p>正在检查版本信息...</p>';
+
+        // 3. 发送更新请求
+        let response;
+        try {
+            response = await fetch('/cgi-bin/wx/integrated.sh?action=updateScript');
+        } catch (networkError) {
+            // 网络错误处理
+            progressStatus.textContent = '获取版本失败';
+            progressTips.innerHTML = '<p class="error-message">请检查网络是否正常！</p>';
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            closeUpdateConfirmDialog();
+            return;
+        }
+
+        // 4. 检查响应状态
+        if (!response.ok) {
+            progressStatus.textContent = '请求失败';
+            progressTips.innerHTML = `<p class="error-message">服务器响应错误 (${response.status})</p>`;
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            closeUpdateConfirmDialog();
+            return;
+        }
+
+        // 5. 获取响应内容
+        const data = await response.text();
+        console.log('更新响应:', data);
+
+        // 6. 显示后端返回的信息
+        const messages = data.trim().split('\n');
+        progressTips.innerHTML = messages.map(msg => `<p>${msg}</p>`).join('');
+
+        // 7. 处理结果
+        if (data.includes('错误：')) {
+            // 7.1 后端返回错误
+            progressStatus.textContent = '更新失败';
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            closeUpdateConfirmDialog();
+        } else if (data.includes('最新版本')) {
+            // 7.2 已是最新版本
+            progressStatus.textContent = '已是最新版本';
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            closeUpdateConfirmDialog();
+        } else if (data.includes('更新完成')) {
+            // 7.3 更新成功，需要刷新页面
+            // progress-countdown 显示即将刷新网页
+            const countdownElement = dialog.querySelector('.progress-countdown');
+            countdownElement.textContent = '即将刷新网页...';
+            progressStatus.textContent = '更新成功';
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            window.location.reload();
+        }
+        
+    } catch (error) {
+        // 8. 其他未预期的错误处理
+        console.error('更新系统失败:', error);
+        progressStatus.textContent = '系统错误';
+        progressTips.innerHTML = '<p class="error-message">发生未知错误，请稍后重试</p>';
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        closeUpdateConfirmDialog();
+    }
+}
