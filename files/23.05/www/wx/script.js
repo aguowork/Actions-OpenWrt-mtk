@@ -1,11 +1,12 @@
 // 在文件顶部添加全局变量声明
-let autoScrollInterval = null;
-let scrollDebounceTimer = null;
+let autoScrollInterval = null; // 自动滚动定时器
+let scrollDebounceTimer = null; // 滚动节流定时器
+let lastVibratedItem = null; // 记录上一次震动的项目
 
 // 修改自动滚动相关变量
 const SCROLL_SPEED = 10; // 降低基础滚动速度，使滚动更平滑
-const SCROLL_THRESHOLD = 160; // 增加触发区域，提前开始滚动
-const SCROLL_ACCELERATION = 3; // 增加加速度，使滚动更灵敏
+const SCROLL_THRESHOLD = 180; // 增加触发区域，提前开始滚动
+const SCROLL_ACCELERATION = 5; // 增加加速度，使滚动更灵敏
 
 async function fetchData(url, method = 'GET', body = null) {
     const timeout = 60000;
@@ -331,29 +332,27 @@ function addDragAndTouchListeners(item) {
     let pressTimer;
     let isDragging = false;
     let startY;
-
+    // 触摸开始事件
     item.addEventListener('touchstart', (e) => {
         if (e.target.type === 'checkbox') return;
         pressTimer = setTimeout(() => {
             isDragging = true;
             item.classList.add('dragging');
             setDraggingState(true);
-            addHapticFeedback('medium'); // 开始拖拽时的触觉反馈
         }, 1000);// 1秒后开始拖拽
         startY = e.touches[0].clientY;
     });
-
+    // 触摸结束事件
     item.addEventListener('touchend', () => {
-        if (isDragging) {
-            addHapticFeedback('light'); // 放置时的触觉反馈
-        }
+        //可以添加震动反馈
         clearTimeout(pressTimer);
         setDraggingState(false);
         clearInterval(autoScrollInterval);
         isDragging = false;
         item.classList.remove('dragging');
     });
-
+    
+    // 触摸移动事件
     item.addEventListener('touchmove', (e) => {
         const touch = e.touches[0];
         const moveDistance = Math.abs(touch.clientY - startY);
@@ -432,25 +431,11 @@ function addDragAndTouchListeners(item) {
     }
 }
 
-/**
- * 播放点击音效
- * @returns {Promise} 播放完成的Promise
- */
-function playClickFeedback() {
-    // 检查设备是否支持震动playClickFeedback
-    if (navigator.vibrate) {
-        // 震动100毫秒
-        navigator.vibrate(100);
-    } else {
-        console.log('设备不支持震动功能');
-    }
-}
-
-
 // 使用提取的函数
 async function validatePassword(event) {
     if (event.key === 'Enter' || event.type === 'click') {
-        playClickFeedback();
+        // 添加重度震动反馈
+        addHapticFeedback('strong');
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const password = passwordInput.value;
@@ -464,8 +449,8 @@ async function validatePassword(event) {
         
         if (!isPasswordSet) {
             // 首次设置密码
-            if (password.length < 6) {
-                showToast('密码长度不能少于6位');
+            if (password.length < 8) {
+                showToast('密码长度不能少于8位');
                 return;
             }
             
@@ -704,11 +689,12 @@ async function updateWiFiList() {
 function handleDragStart(e) {
     e.target.classList.add('dragging');
     // 添加拖拽开始的震动反馈
-    if (navigator.vibrate) {
-        navigator.vibrate(50);
-    }
+    addHapticFeedback('medium');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', e.target.dataset.index);
+    
+    // 重置上次震动的项目
+    lastVibratedItem = null;
     
     // 设置拖拽时的半透明效果
     requestAnimationFrame(() => {
@@ -720,6 +706,9 @@ function handleDragStart(e) {
 function handleDragEnd(e) {
     e.target.classList.remove('dragging');
     e.target.style.opacity = '';
+    
+    // 重置上次震动的项目
+    lastVibratedItem = null;
     
     // 移除所有项目上的拖拽相关类
     document.querySelectorAll('.wifi-item').forEach(item => {
@@ -749,6 +738,14 @@ function handleDragOver(e) {
         const targetRect = targetItem.getBoundingClientRect();
         const dragDirection = draggedRect.top < targetRect.top ? 'down' : 'up';
         targetItem.setAttribute('data-drag-direction', dragDirection);
+
+        // 只有当目标项与上次震动的项不同时才触发震动
+        if (targetItem !== lastVibratedItem) {
+            // 添加轻微震动反馈
+            addHapticFeedback('light');
+            // 更新上次震动的项目
+            lastVibratedItem = targetItem;
+        }
     }
 }
 
@@ -759,6 +756,8 @@ function handleDrop(e) {
     const dropIndex = parseInt(e.currentTarget.dataset.index);
     
     if (draggedIndex !== dropIndex) {
+        // 拖拽放置添加中度震动反馈
+        addHapticFeedback('medium');
         handleReorder(
             document.querySelector(`[data-index="${draggedIndex}"]`),
             document.querySelector(`[data-index="${dropIndex}"]`)
@@ -890,7 +889,8 @@ async function confirmDelete() {
 
 // 修改原有的 deleteSelectedWiFi 函数
 function deleteSelectedWiFi() {
-    playClickFeedback();
+    // 添加重度震动反馈
+    addHapticFeedback('strong');
     showDeleteConfirmDialog();
 }
   
@@ -936,7 +936,8 @@ function isConfigInputValid() {
 
 // 修改保存配置函数
 async function saveConfig() {
-    playClickFeedback();
+    // 添加重度震动反馈
+    addHapticFeedback('strong');
     // WIFI名、加密类型、密码是否有效，无效则直接返回
     if (!isConfigInputValid()) {
         return;
@@ -1112,7 +1113,8 @@ async function fetchCurrentConfig() {
 
   
 async function startAutoSwitch() {
-    playClickFeedback();
+    // 添加重度震动反馈
+    addHapticFeedback('strong');
     const statusElement = document.getElementById('autoSwitchStatus');
     
     // 清空状态并添加控制按钮
@@ -1172,7 +1174,8 @@ function showTimerDialog() {
 
 // 关闭定时器设置弹窗
 function closeTimerDialog() {
-    playClickFeedback(); // 使用提取的音效函数
+    // 添加重度震动反馈
+    // addHapticFeedback('strong');
     const dialog = document.getElementById('timerDialog');
     if (dialog) {
         dialog.classList.add('closing');
@@ -1185,7 +1188,8 @@ function closeTimerDialog() {
 
 // 确认定时器设置
 async function confirmTimer() {
-    playClickFeedback(); // 使用提取的音效函数
+    // 添加重度震动反馈
+    addHapticFeedback('strong');
     const intervalInput = document.getElementById('timerInterval');
     const statusElement = document.getElementById('autoSwitchStatus');
     const interval = intervalInput.value;
@@ -1231,7 +1235,8 @@ async function confirmTimer() {
 
 // 修改自切换定时函数
 function autoSwitchTimer() {
-    //playClickFeedback(); // 添加音效
+    // 添加重度震动反馈
+    //addHapticFeedback('strong');
     showTimerDialog();
 }
 
@@ -1300,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (!isPasswordSet) {
         loginTitle.textContent = '首次使用请设置密码';
-        password.placeholder = '请输入密码(至少6位)';
+        password.placeholder = '请输入密码(至少8位)';
         confirmPassword.classList.remove('hidden');
     }
 
@@ -1308,7 +1313,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', async function() {
-            playClickFeedback();
+            // 添加重度震动反馈
+            //addHapticFeedback('strong');
             navItems.forEach(nav => nav.classList.remove('active'));
             this.classList.add('active');
 
@@ -1733,8 +1739,8 @@ function clearWirelessSettings() {
  * 验证设置,检查变更,显示确认弹窗
  */
 async function saveWirelessSettings() {
-    // 点击音效
-    playClickFeedback();
+    // 添加重度震动反馈
+    addHapticFeedback('strong');
     // 验证设置
     if (!validateWirelessSettings()) {
         return;
@@ -2048,8 +2054,8 @@ async function submitChangePassword() {
         return;
     }
 
-    if (newPassword.length < 6) {
-        showToast('新密码长度不能少于6位');
+    if (newPassword.length < 8) {
+        showToast('新密码长度不能少于8位');
         return;
     }
 
@@ -2145,26 +2151,35 @@ async function startReboot() {
     }
 }
 
-// 在拖拽开始和放置时添加触觉反馈
+/**
+ * 震动反馈函数
+ * @param {string} intensity - 震动强度，可选值为 'light'、'medium'、'strong'
+ * 使用方法：addHapticFeedback('light');
+ */
 function addHapticFeedback(intensity = 'medium') {
+    // 检查浏览器是否支持触觉反馈
     if (!window.navigator.vibrate) return;
     
     switch (intensity) {
+        // 轻度震动
         case 'light':
-            navigator.vibrate(20);
-            break;
-        case 'medium':
             navigator.vibrate(40);
             break;
+        // 中度震动
+        case 'medium':
+            navigator.vibrate(80);
+            break;
+        // 连续震动三次
         case 'strong':
-            navigator.vibrate([40, 30, 40]);
+            navigator.vibrate([50, 30, 50]);
             break;
     }
 }
 
 // 显示更新确认弹窗
 function confirmUpdate() {
-    playClickFeedback();
+    // 添加重度震动反馈
+    addHapticFeedback('strong');
     const dialog = document.getElementById('updateConfirmDialog');
     toggleUI(dialog, true, 'dialog');
 }
